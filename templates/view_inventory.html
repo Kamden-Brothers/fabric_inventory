@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="static/thread_icon.png">
+    
+    <link rel="stylesheet" href="/static/CSS/Header.css">
+    <link rel="stylesheet" href="/static/CSS/view_inventory.css">
+    <title>Inventory</title>
+</head>
+<body>
+
+
+    <div class="header">
+        <h1>
+            <a class="reference" href="add_inventory">Add Fabric</a> -
+            <a class="reference" id="CurrentPage" href="view_inventory">View Fabric</a> -
+            <a class="reference" href="view_inventory">Create Project</a>
+        </h1>
+    </div>
+
+    <div class="topnav">
+        <select name="SearchOption" id="SearchOption">
+            <option value="Key Word">Key Word</option>
+            <option value="Minimum Miles">Minimum Miles</option>
+            <option value="Maximum Miles">Maximum Miles</option>
+            <option value="Minimum Price">Minimum Price</option>
+            <option value="Maximum Price">Maximum Price</option>
+            <option value="VIN">VIN</option>
+        </select>
+
+        <input type="text" placeholder="Search.." id="SearchBar" onkeyup="search_cars()">
+        <button onclick="search_cars()">Search</button>
+
+        <span>
+            <label for="SortVehicles">Sort By:</label>
+
+            <select name="SortVehicles" id="SortVehicles">
+                <option value="Year">Year</option>
+                <option value="Miles">Miles</option>
+                <option value="Price">Price</option>
+            </select>
+
+            <button id="SortButton" type="button" class="ArrowButton" onclick="flip_sort()">
+                ↑
+            </button>
+        </span>
+    </div>
+
+    <table id="FabricTable"></table>
+
+    <script type="text/javascript" src="static\JavaScript\jquery.js"></script>
+    <script type="text/javascript" src="static\JavaScript\view_inventory.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+﻿@font-face {
+    font-family: aptos-black;
+    src: url("fonts\\aptos-black.ttf")
+}
+
+body {
+
+    margin:4px 4px 4px 4px;
+    border: 0px;
+    font-family: aptos-black;
+}
+
+
+.header {
+    margin: 0px;
+    border: 0px;
+    padding: 20px;
+    text-align: center;
+    background: tan;
+    color: white;
+    font-size: 25px;
+}
+
+#CurrentPage {
+    color: black;
+}
+
+.reference {
+    color: white;
+    text-decoration: none;
+    margin: 10px;
+}
+

@@ -1,0 +1,59 @@
+
+.topnav {
+    overflow: hidden;
+    margin: 4px 0px 8px 4px;
+}
+
+.FabricImage {
+    width: 300px;
+}
+
+.CarDetails {
+    border: solid 4px black;
+    border-top: 0;
+    align-content: center;
+}
+
+.ArrowButton {
+    height: 19px;
+}
+
+table {
+    border-collapse: collapse;
+    background: white;
+}
+
+td {
+    border: solid 4px black;
+    width: 300px;
+    vertical-align: top; /* Align text to the top */
+    background: #aaa;
+}
+
+.DataDiv {
+    width: 100%;
+    display: inline-block; /* Inline block for heading */
+    background: #666;
+}
+
+.FabricHeading {
+    font-size: 25px;
+    color: black;
+    background: #9BCBEB;
+    display: inline-block; /* Make it inline-block for centering */
+    width: 100%;
+    text-align: center;
+    margin: 0 auto; /* Center the div */
+}
+
+.FabricHeader {
+    padding-left: 5px;
+    font-weight: bold; /* Makes the heading bold */
+    min-width: 95px; /* Ensures consistent width for headings */
+    display: inline-block; /* Inline block for heading */
+}
+
+.FabricData {
+    margin-right: 20px; /* Space between data entries */
+    color: #333; /* Dark gray for better readability */
+}

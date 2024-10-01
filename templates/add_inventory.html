@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">-->
+    <link rel="icon" href="static/thread_icon.png">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/CSS/Header.css">
+    <link rel="stylesheet" href="/static/CSS/add_inventory.css">
+    <title>Inventory</title>
+</head>
+<body>
+
+    <div class="header">
+        <h1>
+            <a class="reference" id="CurrentPage" href="add_inventory">Add Fabric</a> -
+            <a class="reference" href="view_inventory">View Fabric</a> -
+            <a class="reference" href="view_inventory">Create Project</a>
+        </h1>
+    </div>
+
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#removeItem">
+        Launch demo modal
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="removeItem" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="input_box_div">
+        <table class="drop_down_add_table">
+            <tr>
+                <td class="td_border">
+                    <label for="name_box">Fabric Name</label>
+                </td>
+                <td class="td_border">
+                    <label for="update_box">Update Fabric</label>
+                </td>
+            </tr>
+            <tr>
+                <td class="td_border">
+                    <div>
+                        <input type="text" placeholder="" id="name_box">
+                    </div>
+                </td>
+                <td class="td_border">
+                    <select name="update_box" id="update_box" style="width:200px">
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <fieldset>
+            <legend>Material</legend>
+            <div class="RadioFont">
+                <input type="radio" id="cotton" name="material" value="Cotton">
+                <label for="cotton">Cotton</label><br />
+                <input type="radio" id="flannel" name="material" value="Flannel">
+                <label for="flannel">Flannel</label><br />
+                <input type="radio" id="fleece" name="material" value="Fleece">
+                <label for="fleece">Fleece</label><br />
+                <input type="radio" id="wool" name="material" value="Wool">
+                <label for="wool">Wool</label><br />
+                <input type="radio" id="canvas" name="material" value="Canvas">
+                <label for="canvas">Canvas</label>
+            </div>
+        </fieldset>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <label for="collection">Collection</label>
+        <table class="drop_down_add_table">
+            <tr>
+                <td class="td_border" colspan="1" rowspan="2" width="200px">
+                    <select name="collection" class="input-select" id="collection" style="width:200px">
+                    </select>
+                </td>
+                <td class="td_border" colspan="2">
+                    <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove collection" id="collection_add_remove">
+                </td>
+            </tr>
+            <tr>
+                <td class="td_border" colspan="1">
+                    <button onclick="add_data('collection')">Add Option</button>
+                </td>
+                <td class="td_border" colspan="1">
+                    <button onclick="delete_data('collection')">Remove Option</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <label for="designer">Designer</label>
+        <table class="drop_down_add_table">
+            <tr>
+                <td class="td_border" colspan="1" rowspan="2" width="200px">
+                    <select name="designer" class="input-select" id="designer" style="width:200px">
+                    </select>
+                </td>
+                <td class="td_border" colspan="2">
+                    <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove designer" id="designer_add_remove">
+                </td>
+            </tr>
+            <tr>
+                <td class="td_border" colspan="1">
+                    <button onclick="add_data('designer')">Add Option</button>
+                </td>
+                <td class="td_border" colspan="1">
+                    <button onclick="delete_data('designer')">Remove Option</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <label for="fabric_line">Fabric Line (made for)</label>
+        <table class="drop_down_add_table">
+            <tr>
+                <td class="td_border" colspan="1" rowspan="2" width="200px">
+                    <select name="fabric_line" class="input-select" id="fabric_line" style="width:200px">
+                    </select>
+                </td>
+                <td class="td_border" colspan="2">
+                    <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove fabric line" id="fabric_line_add_remove">
+                </td>
+            </tr>
+            <tr>
+                <td class="td_border" colspan="1">
+                    <button onclick="add_data('fabric_line')">Add Option</button>
+                </td>
+                <td class="td_border" colspan="1">
+                    <button onclick="delete_data('fabric_line')">Remove Option</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <label for="selvage">Year on Selvage</label>
+        <div>
+            <input type="text" placeholder="" id="selvage">
+        </div>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        Colors
+        <table class="drop_down_add_table">
+            <tr>
+                <td class="td_border" width="200px">
+                    <select name="color" id="color" class="input-select" style="width:200px">
+                    </select>
+                </td>
+                <td class="td_border" colspan="2">
+                    <input style="width:300px" class="input-text-box" type="text" placeholder="Add or remove color" id="color_add_remove">
+                </td>
+            </tr>
+            <tr>
+                <td class="td_border" width="200px">
+                    <button onclick="add_list_item('color')">Add Tag</button>
+                </td>
+                <td class="td_border" colspan="1">
+                    <button onclick="add_data('color')">Add Option</button>
+                </td>
+                <td class="td_border" colspan="1">
+                    <button onclick="delete_data('color')">Remove Option</button>
+                </td>
+            </tr>
+        </table>
+        <ul id="color_list" class="no_bullet_ul">
+        </ul>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <label for="width">Width</label>
+        <div>
+            <input type="text" placeholder="" id="width">
+        </div>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <label for="yardage">Yardage</label>
+        <div>
+            <input type="text" placeholder="" id="yardage">
+        </div>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        Tags
+        <table class="drop_down_add_table">
+            <tr>
+                <td class="td_border" width="200px">
+                    <select name="tag" id="tag" class="input-select" style="width:200px">
+                    </select>
+                </td>
+                <td class="td_border" colspan="2">
+                    <input style="width:300px" class="input-text-box" type="text" placeholder="Add or remove tag" id="tag_add_remove">
+                </td>
+            </tr>
+            <tr>
+                <td class="td_border" width="200px">
+                    <button onclick="add_list_item('tag')">Add Tag</button>
+                </td>
+                <td class="td_border" colspan="1">
+                    <button onclick="add_data('tag')">Add Option</button>
+                </td>
+                <td class="td_border" colspan="1">
+                    <button onclick="delete_data('tag')">Remove Option</button>
+                </td>
+            </tr>
+        </table>
+        <ul id="tag_list" class="no_bullet_ul">
+        </ul>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <fieldset>
+            <legend>Cut</legend>
+            <div class="RadioFont">
+                <input type="radio" id="uncut" name="cut" value="Uncut">
+                <label for="uncut">Uncut</label><br />
+                <input type="radio" id="partially" name="cut" value="Partially">
+                <label for="partially">Partially</label><br />
+                <input type="radio" id="scrappy" name="cut" value="Scrappy">
+                <label for="scrappy">Scrappy</label><br />
+                <input type="radio" id="multiple_pieces" name="cut" value="Multiple Pieces">
+                <label for="multiple_pieces">Multiple Pieces</label>
+            </div>
+        </fieldset>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <fieldset>
+            <legend>Style</legend>
+            <div class="RadioFont">
+                <input type="radio" id="flat_fold" name="style" value="Flat Fold">
+                <label for="flat_fold">Flat Fold</label><br />
+                <input type="radio" id="board_large" name="style" value="Board: Large">
+                <label for="board_large">Board: Large</label><br />
+                <input type="radio" id="board_small" name="style" value="Board: Small">
+                <label for="board_small">Board: Small</label><br />
+                <input type="radio" id="fat_quarter" name="style" value="Fat Quarter">
+                <label for="fat_quarter">Fat Quarter</label><br />
+                <input type="radio" id="apron" name="style" value="Apron">
+                <label for="apron">Apron</label><br />
+                <input type="radio" id="panel" name="style" value="Panel">
+                <label for="panel">Panel</label><br>
+                <input type="radio" id="kit" name="style" value="Kit">
+                <label for="kit">Kit</label><br />
+                <input type="radio" id="charm_pack" name="style" value="Charm Pack">
+                <label for="charm_pack">Charm Pack</label><br />
+                <input type="radio" id="bundle" name="style" value="Bundle">
+                <label for="bundle">Bundle</label><br />
+                <input type="radio" id="no_style" name="style" value="no_style">
+                <label for="no_style">No Style</label>
+            </div>
+        </fieldset>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <table class="input_table">
+            <tr>
+                <td style="width:50px">
+                    Rack
+                </td>
+                <td style="width:50px">
+                    Stack
+                </td>
+            </tr>
+            <tr>
+                <td style="width:50px">
+                    <input type="text" style="width:30px" placeholder="" id="rack">
+                </td>
+                <td style="width:50px">
+                    <input type="text" style="width:30px" placeholder="" id="stack">
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <div>
+            Image:
+            <span class="data_box" id="fabric_name_box">Fabric Name</span>
+            <span class="data_box" id="ext_box">.ext</span>
+        </div>
+        <span style="display:flex">
+            <span id="drop-area">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+                Click Here or Drop Image
+            </span>
+            <img id="image-preview" src="" alt="Image Preview" />
+        </span>
+
+    </div>
+    <br />
+
+    <div class="input_box_div">
+        <button onclick="submitData()">Submit</button>
+    </div>
+
+
+    <div class="footer">
+
+    </div>
+
+    <br />
+
+    <script type="text/javascript" src="static\JavaScript\jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" src="static\JavaScript\image_drop.js"></script>
+    <script type="text/javascript" src="static\JavaScript\add_inventory.js"></script>
+</body>
+</html>

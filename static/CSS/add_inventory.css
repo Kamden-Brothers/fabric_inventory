@@ -1,0 +1,78 @@
+﻿.RadioFont {
+    font-family:Arial;
+}
+
+.bottom_padding {
+    padding: 0px 0px 10px 0px;
+}
+
+.input_table {
+    background: #9BCBEB;
+}
+
+.drop_down_add_table {
+    background: #9BCBEB;
+    border: solid;
+    width: 500px;
+    border-collapse: collapse;
+}
+.td_border {
+    background: #9BCBEB;
+    border: solid;
+    text-align: center;
+}
+
+.x_button {
+    width: 20px; /* Fixed width */
+    height: 20px; /* Set a height for vertical alignment */
+    display: inline-block; /* Use inline-block for centering */
+    text-align: center; /* Center the text horizontally */
+    line-height: 15px; /* Set line-height equal to height for vertical centering */
+    border: 1px solid; /* Optional: add border for visibility */
+    background-color: #f0f0f0; /* Optional: background color */
+    margin-right: 10px; /* Add space to the right */
+}
+
+.input_box_div {
+    background: #9BCBEB;
+    padding: 4px;
+}
+
+.text_box {
+    width: 50%;
+}
+
+.no_bullet_ul {
+    list-style-type: none; /* Removes bullets */
+    padding: 3px 0px 0px 0px; /* Removes default padding */
+    margin: 0; /* Removes default margin */
+}
+
+#drop-area {
+    border: 2px solid #ccc;
+    border-radius: 20px;
+    width: 300px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+    text-align: center;
+    color: #555;
+}
+    #drop-area.highlight {
+        border-color: black;
+        color: black;
+    }
+
+#image-preview {
+    margin: 5px;
+    height: 200px;
+    width: auto;
+    display: none;
+}
+
+.data_box {
+    border: 2px solid;
+    padding: 0px 5px 0px 5px;
+}

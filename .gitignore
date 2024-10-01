@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Codes specific files
+fabric_uploads/
+
 # User-specific files
 *.rsuser
 *.suo

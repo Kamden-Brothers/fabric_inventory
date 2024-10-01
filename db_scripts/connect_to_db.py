@@ -6,6 +6,7 @@ import csv
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = './fabric_uploads'
+os.makedirs(UPLOAD_FOLDER, exists_ok=True)
 
 uid = ''
 password = ''

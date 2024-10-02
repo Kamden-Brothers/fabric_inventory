@@ -1,4 +1,5 @@
 import os
+import json
 
 import pyodbc 
 import pandas as pd
@@ -8,8 +9,15 @@ from werkzeug.utils import secure_filename
 UPLOAD_FOLDER = './fabric_uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-uid = ''
-password = ''
+try:
+    with open('credentials.json', 'r') as file:
+        data = json.load(file)
+    uid = data['username']
+    password = data['password']
+except Exception as e:
+    print('Error loading credentials')
+    raise e
+
 
 cnxn = pyodbc.connect("Driver={SQL Server};"
                         "Server=DESKTOP-FJPCC1H;"

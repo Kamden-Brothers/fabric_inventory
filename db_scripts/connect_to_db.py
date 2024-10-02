@@ -240,11 +240,9 @@ def add_fabric(data, image_file):
 
                 # Connect colors and tags to the new fabric entry
                 for color_id in color_ids:
-                    _add_entry(cursor, 'color_id', 'color_junction', ['fabric_id', 'color_id'], (fabric_id, color_id))
+                    _add_entry(cursor, 'color_junction', ['fabric_id', 'color_id'], (fabric_id, color_id))
                 for tag_id in tag_ids:
-                    _add_entry(cursor, 'tag_id', 'tag_junction', ['fabric_id', 'tag_id'], (fabric_id, tag_id))
-                    
-
+                    _add_entry(cursor, 'tag_junction', ['fabric_id', 'tag_id'], (fabric_id, tag_id))
 
             # Save image
             filename = data['name'] + data['ext']

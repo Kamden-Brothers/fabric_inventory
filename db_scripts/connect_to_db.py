@@ -19,7 +19,7 @@ except Exception as e:
     raise e
 
 
-cnxn = pyodbc.connect("Driver={SQL Server};"
+cnxn = pyodbc.connect("Driver={ODBC Driver 17 for SQL Server};"
                         "Server=DESKTOP-FJPCC1H;"
                         "Database=fabric_inventory;"
                         f"uid={uid};pwd={password}")

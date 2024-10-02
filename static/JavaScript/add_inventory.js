@@ -144,8 +144,10 @@ function add_data(list_name) {
     }
 }
 
+let persistent_list_name;
+
 function delete_data(list_name) {
-    let add_na = (list_name !== 'color' && list_name !== 'tag');
+    persistent_list_name = list_name;
 
     text_box = document.getElementById(list_name + "_add_remove");
     text = text_box.value;
@@ -155,16 +157,43 @@ function delete_data(list_name) {
     if (dropdown_data[list_name].find(item => item.toLowerCase() === text.toLowerCase())) {
         //$.getJSON('check_dropdown_delete') {
         //}
+        //ADD SELECT TO GET NUMBER OF ITEMS
 
+        const removeMessage = document.getElementById('removeMessage')
+        removeMessage.innerHTML = `Do you want to remove ${text} from ${uppercaseWords(list_name)}<br />This will effect 5 items`
         $('#removeItem').modal('show');
+    }
+}
 
-        if (removeFromArray(text, dropdown_data[list_name])) {
-            update_dropdown(dropdown_data[list_name], collection_dropdown, null, add_na);
-            // text_box.value = "";
+function deleteOption() {
+    
+    let add_na = (persistent_list_name !== 'color' && persistent_list_name !== 'tag');
 
-            if (dropdown_data[`current_${list_name}s`]) {
-                delete_list_item(text, list_name);
-            }
+    text_box = document.getElementById(persistent_list_name + "_add_remove");
+    text = text_box.value;
+    collection_dropdown = document.getElementById(persistent_list_name);
+
+    postData = { list_name: persistent_list_name, text_value: text }
+
+    $.ajax({
+        url: '/delete_data',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(postData),
+        success: function (data) {
+            console.log('Success:', data);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);
+        }
+    });
+
+    if (removeFromArray(text, dropdown_data[persistent_list_name])) {
+        update_dropdown(dropdown_data[persistent_list_name], collection_dropdown, null, add_na);
+        // text_box.value = "";
+
+        if (dropdown_data[`current_${persistent_list_name}s`]) {
+            delete_list_item(text, persistent_list_name);
         }
     }
 }

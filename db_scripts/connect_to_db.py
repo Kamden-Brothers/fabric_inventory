@@ -22,9 +22,9 @@ except Exception as e:
     raise e
 
 
-cnxn = pyodbc.connect("Driver={{driver}};"
-                        "Server={server_name};"
-                        "Database={db};"
+cnxn = pyodbc.connect(f"Driver={{driver}};"
+                        f"Server={server_name};"
+                        f"Database={db};"
                         f"uid={uid};pwd={password}")
 
 

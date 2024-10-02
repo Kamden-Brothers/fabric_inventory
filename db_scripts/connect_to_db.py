@@ -22,11 +22,6 @@ except Exception as e:
     raise e
 
 
-# print(f"Driver={{driver}};"
-                        # f"Server={server_name};"
-                        # f"Database={db};"
-                        # f"uid={uid};pwd={password}")
-# exit()
 cnxn = pyodbc.connect(f"Driver={{{driver}}};"
                         f"Server={server_name};"
                         f"Database={db};"

@@ -12,16 +12,19 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 try:
     with open('credentials.json', 'r') as file:
         data = json.load(file)
+    driver = data['driver']
+    server_name = data['server_name']
     uid = data['username']
     password = data['password']
+    db = data['db']
 except Exception as e:
     print('Error loading credentials')
     raise e
 
 
-cnxn = pyodbc.connect("Driver={ODBC Driver 17 for SQL Server};"
-                        "Server=DESKTOP-FJPCC1H;"
-                        "Database=fabric_inventory;"
+cnxn = pyodbc.connect("Driver={{driver}};"
+                        "Server={server_name};"
+                        "Database={db};"
                         f"uid={uid};pwd={password}")
 
 

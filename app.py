@@ -40,6 +40,15 @@ def current_data():
 def all_fabric_names():
     return [d['fabric_name'] for d in all_fabric_data]
 
+@app.route('/delete_data', methods=['POST'])
+def delete_data():
+    data = request.get_json()
+    list_name = data.get('list_name')
+    text_value = data.get('text_value')
+
+    print(list_name, text_value)
+    return {'result': True, 'debug_msg': ''}
+
 @app.route('/get_specific_fabric')
 def get_specific_fabric():
     fabric_name = request.args.get('fabric')

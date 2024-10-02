@@ -137,11 +137,7 @@ def delete_fabric():
             cnxn.rollback()  # Roll back on error
             raise e  # Re-raise the exception for handling further up
 
-    
-def update_linked_item():
-    '''
-    Update Color or Tag entry in linked table
-    '''
+
 
 def delete_linked_item():
     '''
@@ -188,6 +184,41 @@ def update_linked_collection(cursor, fabric_id, table_name, data):
         print(item_name, item_id)
         
         _add_entry(cursor, f'{table_name}_junction', ['fabric_id', f'{table_name}_id'], (fabric_id, item_id))
+
+
+def check_table_name(name):
+    '''
+    Checks if table name is in list of acceptable table names
+    
+    Returns:
+        Str: Adjusted table name
+        Str: Name of id column
+        Bool: True if table connection is simple. False in table connection is complex (junction table)
+    '''
+    id_name = name + '_id'
+    if name == 'collection':
+        name = 'collection_name'
+
+    if name in ['material', 'collection_name', 'designer', 'cut', 'style', 'fabric']:
+        return name, id_name, True
+    elif name in ['tag', 'color']:
+        return name, id_name, False
+    raise db_exception('Not an acceptable table name')
+
+
+def get_column_connections(column, value, passed_in_cursor=None):
+    '''Get number of connections to a entry in connecte table'''
+    column, id_name, simple = check_table_name(column)
+    print(column, simple)
+
+    with passed_in_cursor or cnxn.cursor() as cursor:
+        column_id = _get_id(cursor, id_name, column, [column], (value,))
+        print(column_id)
+
+def delete_column_value(column, value):
+    '''Delete value in connected table and all connections to it'''
+    get_column_connections(column, value)
+    column, id_name, simple = check_table_name(column)
 
 
 def add_fabric(data, image_file):
@@ -331,9 +362,10 @@ def get_all_data():
         return all_fabrics
 
 if __name__ == '__main__':
-    delete_fabric()
+    # delete_fabric()
     # add_fabric()
     # update_fabric()
 
     # cnxn.commit()
     # get_all_data()
+    delete_column_value('collection', 'Cool')

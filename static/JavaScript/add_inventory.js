@@ -102,9 +102,6 @@ function update_dropdown(list, element_append, new_text, add_na = true) {
 
 function update_ul(list, element_append, list_name) {
     element_append.innerHTML = "";
-    console.log(list)
-    console.log(element_append)
-    console.log(list_name)
     list.forEach((name) => {
         li = document.createElement("li");
         li.innerHTML = `<button class="x_button" onclick="delete_list_item('${name}', '${list_name}')">x</button><span>${name}</span>`;
@@ -116,15 +113,12 @@ function update_ul(list, element_append, list_name) {
 function add_list_item(list_name) {
     text = document.getElementById(list_name).value;
     tag_list = document.getElementById(list_name + "_list");
-    console.log(list_name)
-    console.log(text)
     addToArray(text, dropdown_data[`current_${list_name}s`]);
 
     update_ul(dropdown_data[`current_${list_name}s`], tag_list, list_name);
 }
 
 function delete_list_item(name, list_name) {
-    console.log(name);
     tag_list = document.getElementById(list_name + "_list");
 
     removeFromArray(name, dropdown_data[`current_${list_name}s`]);
@@ -176,9 +170,7 @@ function delete_data(list_name) {
 
     // Current text being removed from dropdown and database
     const text = document.getElementById(list_name + "_add_remove").value;
-    console.log(dropdown_data[list_name + '_new'])
     if (removeFromArray(text, dropdown_data[list_name + '_new'])) {
-        console.log('stuff')
         removeFromDropdown(list_name, text)
         return
     }
@@ -225,7 +217,6 @@ function deleteOption() {
         data: JSON.stringify(postData),
         success: function (data) {
             if (data.result) {
-                console.log('Success:', data);
                 removeFromDropdown(persistent_list_name, text)
             }
             else {
@@ -253,7 +244,6 @@ selectElements.forEach(select => {
 const update_fabric = document.getElementById('update_box');
 update_fabric.addEventListener('change', (event) => {
     let change_value = event.target.value;
-    console.log(change_value);
     if (change_value == NOT_APPLICABLE) {
         window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
         updateURL();
@@ -261,7 +251,6 @@ update_fabric.addEventListener('change', (event) => {
         return
     }
     $.getJSON(`/get_specific_fabric?fabric=${change_value}`, fabricData => {
-        console.log(fabricData);
 
         let newUrl = 'add_inventory?fabric=' + fabricData.fabric_name.replace(/ /g, "_") + "&ext=" + fabricData.image_type;
         window.history.pushState({ path: newUrl }, '', newUrl);
@@ -350,10 +339,8 @@ function submitData() {
         param.data['style'] = get_radio('style');
 
         const imageInput = document.getElementById('imageInput');
-        console.log(imageInput);
         const imageFile = imageInput.files[0]; // Get the selected file
         if (imageFile) {
-            console.log(imageFile);
             param.data['image'] = imageFile; // Add the image file to param
         }
 
@@ -401,7 +388,6 @@ function submitData() {
     }
 
     $('#submitModal').modal('show');
-    console.log(param)
     data_to_submit = param
 }
 
@@ -466,13 +452,11 @@ function update_multi_dropdowns() {
         update_dropdown(dropdown_data[list_name], collection_dropdown, null, false);
 
         tag_list = document.getElementById(list_name + "_list");
-        console.log(dropdown_data[`current_${list_name}s`])
         update_ul(dropdown_data[`current_${list_name}s`], tag_list, list_name);
     });
 }
 
 function setImage(imagePath) {
-    console.log(imagePath);
     const imageInput = document.getElementById('imageInput');
 
     fetch(imagePath)
@@ -514,7 +498,6 @@ function resetPage() {
 
 function updatePage() {
     $.getJSON("/current_data", function (result) {
-        console.log(result);
 
         dropdown_data['tag'] = result['tag'];
         dropdown_data['collection'] = result['collection_name'];
@@ -527,7 +510,6 @@ function updatePage() {
 
         $.getJSON('/all_fabric_names', fabric_names => {
             const update_fabric_box = document.getElementById('update_box');
-            console.log(fabric_names);
             let new_text = null;
             if (urlParams) {
                 if (urlParams.fabric) {
@@ -539,9 +521,7 @@ function updatePage() {
 
         if (urlParams) {
             if (urlParams.fabric) {
-                console.log(urlParams.fabric);
                 $.getJSON(`/get_specific_fabric?fabric=${urlParams.fabric}`, fabricData => {
-                    console.log(fabricData);
 
                     // Set fabric name
                     document.getElementById("name_box").value = fabricData.fabric_name;
@@ -568,7 +548,6 @@ function updatePage() {
 
                     // Set style
                     if (fabricData.style) {
-                        console.log(fabricData.style);
                         document.getElementById(fabricData.style.toLowerCase().replace(/: | /g, "_")).checked = true;
                     }
 

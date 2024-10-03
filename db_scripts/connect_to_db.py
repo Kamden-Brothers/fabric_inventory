@@ -22,11 +22,6 @@ except Exception as e:
     raise e
 
 
-# print(f"Driver={{driver}};"
-                        # f"Server={server_name};"
-                        # f"Database={db};"
-                        # f"uid={uid};pwd={password}")
-# exit()
 cnxn = pyodbc.connect(f"Driver={{{driver}}};"
                         f"Server={server_name};"
                         f"Database={db};"
@@ -62,7 +57,7 @@ def _update_entry(cursor, search_id, search_column, table, column, data):
     set_str = ', '.join(f'{c}=?' for c in column)
 
     query_str = f'''UPDATE fabric_inventory.dbo.{table} SET {set_str} WHERE {search_column} = {search_id}'''
-    
+    print(query_str)
     cursor.execute(query_str, data)
 
 
@@ -87,7 +82,7 @@ def _get_id(cursor, return_val, table, column, search_data, raise_ex=True, ignor
     if not fetch_val:
         if raise_ex:
             raise db_exception(f'Could not find {search_data=} in {table=} {column=}')
-        return None
+        return []
     return fetch_val[0]
 
 def _get_ids(cursor, return_val, table, column, search_data, raise_ex=True, ignore_none=True):
@@ -106,7 +101,7 @@ def _get_ids(cursor, return_val, table, column, search_data, raise_ex=True, igno
     if not fetch_val:
         if raise_ex:
             raise db_exception(f'Could not find {search_data=} in {table=} {column=}')
-        return None
+        return []
     return [val[0] for val in fetch_val]  # Return all found IDs
 
 
@@ -137,11 +132,7 @@ def delete_fabric():
             cnxn.rollback()  # Roll back on error
             raise e  # Re-raise the exception for handling further up
 
-    
-def update_linked_item():
-    '''
-    Update Color or Tag entry in linked table
-    '''
+
 
 def delete_linked_item():
     '''
@@ -188,6 +179,62 @@ def update_linked_collection(cursor, fabric_id, table_name, data):
         print(item_name, item_id)
         
         _add_entry(cursor, f'{table_name}_junction', ['fabric_id', f'{table_name}_id'], (fabric_id, item_id))
+
+
+def check_table_name(name):
+    '''
+    Checks if table name is in list of acceptable table names
+    
+    Returns:
+        Str: Adjusted table name
+        Str: Name of id column
+        Bool: True if table connection is simple. False in table connection is complex (junction table)
+    '''
+    id_name = name + '_id'
+    if name == 'collection':
+        name = 'collection_name'
+
+    if name in ['material', 'collection_name', 'designer', 'cut', 'style', 'fabric']:
+        return name, id_name, True
+    elif name in ['tag', 'color']:
+        return name, id_name, False
+    raise db_exception('Not an acceptable table name')
+
+
+def get_column_connections(column, value, passed_in_cursor=None):
+    '''Get number of connections to a entry in connecte table'''
+    column, id_name, simple = check_table_name(column)
+
+    with passed_in_cursor or cnxn.cursor() as cursor:
+        if simple:
+            column_id = _get_id(cursor, id_name, column, [column], (value,))
+            connected_fabrics = _get_ids(cursor, 'fabric_id', 'fabric', [id_name], (column_id,), raise_ex=False)
+
+        else:
+            column_id = _get_id(cursor, id_name, column, [column], (value,))
+            connected_fabrics = _get_ids(cursor, 'fabric_id', f'{column}_junction', [id_name], (column_id,), raise_ex=False)
+
+    return connected_fabrics, column_id
+
+
+def delete_column_value(column, value):
+    '''Delete value in connected table and all connections to it'''
+    with cnxn.cursor() as cursor:
+        try:
+            connected_fabrics, column_id = get_column_connections(column, value, cursor)
+            column, id_name, simple = check_table_name(column)
+
+            if simple:
+                for fabric_id in connected_fabrics:
+                    _update_entry(cursor, fabric_id, 'fabric_id', 'fabric', [id_name], (None,))
+            else:
+                _delete_entry(cursor, f'{column}_junction', [id_name], (column_id,))
+
+            _delete_entry(cursor, column, [id_name], (column_id,))
+            cnxn.commit()
+        except Exception as e:
+            cnxn.rollback()
+            raise e
 
 
 def add_fabric(data, image_file):
@@ -331,9 +378,10 @@ def get_all_data():
         return all_fabrics
 
 if __name__ == '__main__':
-    delete_fabric()
+    # delete_fabric()
     # add_fabric()
     # update_fabric()
 
     # cnxn.commit()
     # get_all_data()
+    delete_column_value('collection', 'Cool')

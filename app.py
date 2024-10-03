@@ -40,6 +40,34 @@ def current_data():
 def all_fabric_names():
     return [d['fabric_name'] for d in all_fabric_data]
 
+@app.route('/connected_items', methods=['POST'])
+def connected_items():
+    data = request.get_json()
+    list_name = data.get('list_name')
+    text_value = data.get('text_value')
+    try:
+        connections, _ = connect_to_db.get_column_connections(list_name, text_value)
+        return {'result': True, 'connections': len(connections)}
+    except connect_to_db.db_exception as e:
+        return {'result': False, 'error_msg': e.error_msg}
+    except Exception as e:
+        return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
+
+
+@app.route('/delete_data', methods=['POST'])
+def delete_data():
+    data = request.get_json()
+    list_name = data.get('list_name')
+    text_value = data.get('text_value')
+    connect_to_db.delete_column_value(list_name, text_value)
+
+    try:
+        return {'result': True}
+    except connect_to_db.db_exception as e:
+        return {'result': False, 'error_msg': e.error_msg}
+    except Exception as e:
+        return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
+
 @app.route('/get_specific_fabric')
 def get_specific_fabric():
     fabric_name = request.args.get('fabric')

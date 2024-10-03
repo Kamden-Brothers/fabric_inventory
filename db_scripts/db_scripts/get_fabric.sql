@@ -21,3 +21,4 @@ LEFT JOIN (
 
 
 SELECT * FROM fabric_inventory.dbo.fabric;
+Select * from fabric_inventory.dbo.collection_name

@@ -102,6 +102,9 @@ function update_dropdown(list, element_append, new_text, add_na = true) {
 
 function update_ul(list, element_append, list_name) {
     element_append.innerHTML = "";
+    console.log(list)
+    console.log(element_append)
+    console.log(list_name)
     list.forEach((name) => {
         li = document.createElement("li");
         li.innerHTML = `<button class="x_button" onclick="delete_list_item('${name}', '${list_name}')">x</button><span>${name}</span>`;
@@ -113,7 +116,8 @@ function update_ul(list, element_append, list_name) {
 function add_list_item(list_name) {
     text = document.getElementById(list_name).value;
     tag_list = document.getElementById(list_name + "_list");
-
+    console.log(list_name)
+    console.log(text)
     addToArray(text, dropdown_data[`current_${list_name}s`]);
 
     update_ul(dropdown_data[`current_${list_name}s`], tag_list, list_name);
@@ -250,6 +254,12 @@ const update_fabric = document.getElementById('update_box');
 update_fabric.addEventListener('change', (event) => {
     let change_value = event.target.value;
     console.log(change_value);
+    if (change_value == NOT_APPLICABLE) {
+        window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
+        updateURL();
+        updatePage();
+        return
+    }
     $.getJSON(`/get_specific_fabric?fabric=${change_value}`, fabricData => {
         console.log(fabricData);
 
@@ -281,6 +291,23 @@ fabric_name.addEventListener('keyup', function (event) {
     fabric_name_box.innerHTML = uppercaseWords(fabric_name.value);
 });
 
+function get_radio(name) {
+    let selected = document.querySelector(`input[name="${name}"]:checked`);
+    if (selected) {
+        let val = selected.value;
+        if ('no_style' === val) {
+            return null;
+        }
+        return val;
+    }
+    if (name !== 'style') {
+        throw new Error(`${name} is required`);
+    }
+    return null;
+}
+
+let data_to_submit;
+
 function submitData() {
     function check_no_data(elementID, required = false) {
         const data_value = document.getElementById(elementID).value;
@@ -293,20 +320,6 @@ function submitData() {
         return data_value;
     }
 
-    function get_radio(name) {
-        let selected = document.querySelector(`input[name="${name}"]:checked`);
-        if (selected) {
-            let val = selected.value;
-            if ('no_style' === val) {
-                return null;
-            }
-            return val;
-        }
-        if (name !== 'style') {
-            throw new Error(`${name} is required`);
-        }
-        return null;
-    }
 
     function checkCorrectData(data) {
         if (/_/.test(data.name)) {
@@ -361,16 +374,54 @@ function submitData() {
         return;
     }
 
+    if (param.data.old_fabric) {
+        if (param.data.old_fabric.toLowerCase() != param.data.name.toLowerCase()) {
+            // Update or New Fabric
+            $('#newFabric').show().prop('checked', true);
+            $('#newFabricLabel').show().html(`Add Fabric: "${param.data.name}"`);
+            $('#updateFabric').show();
+            $('#updateFabricLabel').show().html(`Update Fabric: "${param.data.old_fabric}" -> "${param.data.name}"`);
+        }
+        else
+        {
+            // Update Fabric
+            $('#newFabric').hide();
+            $('#newFabricLabel').hide();
+            $('#updateFabric').show().prop('checked', true);
+            $('#updateFabricLabel').show().html(`Update Fabric: "${param.data.name}"`);
+        }
+    }
+    else
+    {
+        // New Fabric
+        $('#newFabric').show().prop('checked', true);
+        $('#newFabricLabel').show().html(`Add Fabric: "${param.data.name}"`);
+        $('#updateFabric').hide();
+        $('#updateFabricLabel').hide();
+    }
+
+    $('#submitModal').modal('show');
+    console.log(param)
+    data_to_submit = param
+}
+
+function submit() {
+    // Check update or new
+    if (get_radio('newUpdate') == 'New') {
+        data_to_submit.data.old_fabric = '';
+        data_to_submit.data.old_ext = '';
+    }
+
     // Prepare FormData for the AJAX request
     const formData = new FormData();
-    for (const key in param.data) {
+    for (const key in data_to_submit.data) {
         // If the value is an array, append each item with the same key
-        if (Array.isArray(param.data[key])) {
-            param.data[key].forEach(item => {
+        if (Array.isArray(data_to_submit.data[key])) {
+            data_to_submit.data[key].forEach(item => {
                 formData.append(key, item);
             });
         } else {
-            formData.append(key, param.data[key]);
+            formData.append(key, data_to_submit.data[key]);
         }
     }
 
@@ -382,7 +433,11 @@ function submitData() {
         data: formData,
         success: (response) => {
             if (response.result) {
-                console.log('Successfully run');
+                window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
+                updateURL();
+                if (!$('#keepData').is(':checked')) {
+                    resetPage()
+                }
                 if (response.debug_msg) {
                     alert('Fabric added\nDebug message: ' + response.debug_msg);
                 } else {
@@ -411,6 +466,7 @@ function update_multi_dropdowns() {
         update_dropdown(dropdown_data[list_name], collection_dropdown, null, false);
 
         tag_list = document.getElementById(list_name + "_list");
+        console.log(dropdown_data[`current_${list_name}s`])
         update_ul(dropdown_data[`current_${list_name}s`], tag_list, list_name);
     });
 }
@@ -432,6 +488,30 @@ function setImage(imagePath) {
         .catch(error => console.error('Error setting image:', error));
 }
 
+function resetPage() {
+    // Reset text boxes
+    document.getElementById("name_box").value = "";
+    document.getElementById("rack").value = "";
+    document.getElementById("stack").value = "";
+    document.getElementById("width").value = "";
+    document.getElementById("yardage").value = "";
+
+    // Remove all tags and colors
+    dropdown_data['current_colors'] = [];
+    dropdown_data['current_tags'] = [];
+    update_multi_dropdowns();
+
+    // Reset image data
+    document.getElementById("fabric_name_box").innerHTML = "Fabric Name";
+    document.getElementById('ext_box').innerHTML = ".ext";
+    clearImage();
+
+    // Set Radio buttons to first option
+    document.getElementById('cotton').checked = true; // Material
+    document.getElementById('uncut').checked = true;  // Cut
+    document.getElementById('no_style').checked = true; // Style
+}
+
 function updatePage() {
     $.getJSON("/current_data", function (result) {
         console.log(result);
@@ -442,6 +522,8 @@ function updatePage() {
         dropdown_data['designer'] = result['designer'];
         dropdown_data['fabric_line'] = result['fabric_line'];
         update_single_dropdowns();
+
+        resetPage();
 
         $.getJSON('/all_fabric_names', fabric_names => {
             const update_fabric_box = document.getElementById('update_box');

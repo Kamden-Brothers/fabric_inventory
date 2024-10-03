@@ -2,12 +2,17 @@ const NOT_APPLICABLE = 'NOT APPLICABLE';
 
 let dropdown_data = {};
 dropdown_data['collection'] = [];
+dropdown_data['collection_new'] = [];
 dropdown_data['designer'] = [];
+dropdown_data['designer_new'] = [];
 dropdown_data['fabric_line'] = [];
-dropdown_data['current_colors'] = [];
+dropdown_data['fabric_line_new'] = [];
+dropdown_data['current_colors'] = []; // List of connected colors
 dropdown_data['color'] = [];
+dropdown_data['color_new'] = [];
 dropdown_data['tag'] = [];
-dropdown_data['current_tags'] = [];
+dropdown_data['tag_new'] = [];
+dropdown_data['current_tags'] = []; // List of connected tags
 
 function uppercaseWords(text) {
     return text.replace(/\b\w/g, letter => letter.toUpperCase());
@@ -131,8 +136,8 @@ function add_data(list_name) {
     text = uppercaseWords(text);
 
     const collection_dropdown = document.getElementById(list_name);
-
     if (addToArray(text, dropdown_data[list_name])) {
+        addToArray(text, dropdown_data[list_name + '_new'])
         update_dropdown(dropdown_data[list_name], collection_dropdown, text, add_na);
         // text_box.value = "";
     } else if (text) {
@@ -144,34 +149,68 @@ function add_data(list_name) {
     }
 }
 
+
+function removeFromDropdown(list_name, text) {
+    let add_na = (list_name !== 'color' && list_name !== 'tag');
+    collection_dropdown = document.getElementById(list_name);
+
+    if (removeFromArray(text, dropdown_data[list_name])) {
+        update_dropdown(dropdown_data[list_name], collection_dropdown, null, add_na);
+        // text_box.value = "";
+
+        if (dropdown_data[`current_${list_name}s`]) {
+            delete_list_item(text, list_name);
+        }
+    }
+}
+
+
 let persistent_list_name;
 
 function delete_data(list_name) {
     persistent_list_name = list_name;
 
-    text_box = document.getElementById(list_name + "_add_remove");
-    text = text_box.value;
-    collection_dropdown = document.getElementById(list_name);
-
-
+    // Current text being removed from dropdown and database
+    const text = document.getElementById(list_name + "_add_remove").value;
+    console.log(dropdown_data[list_name + '_new'])
+    if (removeFromArray(text, dropdown_data[list_name + '_new'])) {
+        console.log('stuff')
+        removeFromDropdown(list_name, text)
+        return
+    }
+    
     if (dropdown_data[list_name].find(item => item.toLowerCase() === text.toLowerCase())) {
-        //$.getJSON('check_dropdown_delete') {
-        //}
-        //ADD SELECT TO GET NUMBER OF ITEMS
+        postData = { list_name: list_name, text_value: text }
 
-        const removeMessage = document.getElementById('removeMessage')
-        removeMessage.innerHTML = `Do you want to remove ${text} from ${uppercaseWords(list_name)}<br />This will effect 5 items`
-        $('#removeItem').modal('show');
+        $.ajax({
+            url: '/connected_items',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(postData),
+            success: function (data) {
+                if (data.result) {
+                    // Item was found in data base. Update remove message and show Bootstrap popup
+                    const removeMessage = document.getElementById('removeMessage')
+                    removeMessage.innerHTML = `Do you want to remove ${text} from ${uppercaseWords(list_name)}<br />This will effect ${data.connections} item(s)`
+                    $('#removeItem').modal('show');
+                }
+                else {
+                    // Error occured trying to get item from database
+                    alert(`Failed to get item data. Error: "${data.error_msg}"`)
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+                alert(`Failed to get item data. Error: "${error}"`)
+                return
+            }
+        })        
     }
 }
 
 function deleteOption() {
-    
-    let add_na = (persistent_list_name !== 'color' && persistent_list_name !== 'tag');
 
-    text_box = document.getElementById(persistent_list_name + "_add_remove");
-    text = text_box.value;
-    collection_dropdown = document.getElementById(persistent_list_name);
+    const text = document.getElementById(persistent_list_name + "_add_remove").value;
 
     postData = { list_name: persistent_list_name, text_value: text }
 
@@ -181,21 +220,19 @@ function deleteOption() {
         contentType: 'application/json',
         data: JSON.stringify(postData),
         success: function (data) {
-            console.log('Success:', data);
+            if (data.result) {
+                console.log('Success:', data);
+                removeFromDropdown(persistent_list_name, text)
+            }
+            else {
+                alert(`Error removing {text} from ${persistent_list_name}. ${data.error_msg}`)
+            }
         },
         error: function (xhr, status, error) {
-            console.error('Error:', error);
+            alert(`Error removing {text} from ${persistent_list_name}. ${error}`)
         }
     });
 
-    if (removeFromArray(text, dropdown_data[persistent_list_name])) {
-        update_dropdown(dropdown_data[persistent_list_name], collection_dropdown, null, add_na);
-        // text_box.value = "";
-
-        if (dropdown_data[`current_${persistent_list_name}s`]) {
-            delete_list_item(text, persistent_list_name);
-        }
-    }
 }
 
 const selectElements = document.querySelectorAll('.input-select');

@@ -57,7 +57,7 @@ def _update_entry(cursor, search_id, search_column, table, column, data):
     set_str = ', '.join(f'{c}=?' for c in column)
 
     query_str = f'''UPDATE fabric_inventory.dbo.{table} SET {set_str} WHERE {search_column} = {search_id}'''
-    
+    print(query_str)
     cursor.execute(query_str, data)
 
 
@@ -82,7 +82,7 @@ def _get_id(cursor, return_val, table, column, search_data, raise_ex=True, ignor
     if not fetch_val:
         if raise_ex:
             raise db_exception(f'Could not find {search_data=} in {table=} {column=}')
-        return None
+        return []
     return fetch_val[0]
 
 def _get_ids(cursor, return_val, table, column, search_data, raise_ex=True, ignore_none=True):
@@ -101,7 +101,7 @@ def _get_ids(cursor, return_val, table, column, search_data, raise_ex=True, igno
     if not fetch_val:
         if raise_ex:
             raise db_exception(f'Could not find {search_data=} in {table=} {column=}')
-        return None
+        return []
     return [val[0] for val in fetch_val]  # Return all found IDs
 
 
@@ -204,16 +204,37 @@ def check_table_name(name):
 def get_column_connections(column, value, passed_in_cursor=None):
     '''Get number of connections to a entry in connecte table'''
     column, id_name, simple = check_table_name(column)
-    print(column, simple)
 
     with passed_in_cursor or cnxn.cursor() as cursor:
-        column_id = _get_id(cursor, id_name, column, [column], (value,))
-        print(column_id)
+        if simple:
+            column_id = _get_id(cursor, id_name, column, [column], (value,))
+            connected_fabrics = _get_ids(cursor, 'fabric_id', 'fabric', [id_name], (column_id,), raise_ex=False)
+
+        else:
+            column_id = _get_id(cursor, id_name, column, [column], (value,))
+            connected_fabrics = _get_ids(cursor, 'fabric_id', f'{column}_junction', [id_name], (column_id,), raise_ex=False)
+
+    return connected_fabrics, column_id
+
 
 def delete_column_value(column, value):
     '''Delete value in connected table and all connections to it'''
-    get_column_connections(column, value)
-    column, id_name, simple = check_table_name(column)
+    with cnxn.cursor() as cursor:
+        try:
+            connected_fabrics, column_id = get_column_connections(column, value, cursor)
+            column, id_name, simple = check_table_name(column)
+
+            if simple:
+                for fabric_id in connected_fabrics:
+                    _update_entry(cursor, fabric_id, 'fabric_id', 'fabric', [id_name], (None,))
+            else:
+                _delete_entry(cursor, f'{column}_junction', [id_name], (column_id,))
+
+            _delete_entry(cursor, column, [id_name], (column_id,))
+            cnxn.commit()
+        except Exception as e:
+            cnxn.rollback()
+            raise e
 
 
 def add_fabric(data, image_file):

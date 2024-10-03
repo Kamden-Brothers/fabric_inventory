@@ -22,42 +22,51 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="removeItem" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="removeItem" tabindex="-1" role="dialog" aria-labelledby="removeItemLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <h5 class="modal-title" id="removeItemHeader">Remove Item</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" id="removeMessage">
-                    ...
+                    Remove MSG
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="deleteOption()" data-dismiss="modal">Kill It</button>
+                    <button type="button" class="btn btn-primary" onclick="deleteOption()" data-dismiss="modal">Delete Item</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="submitModal" tabindex="-1" role="dialog" aria-labelledby="submitModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Submit/Update Fabric</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    
+                    <div id="updateDiv">
+                        <input type="radio" id="newFabric" name="newUpdate" value="New" checked>
+                        <label for="newFabric" id="newFabricLabel">Add New Fabric</label><br />
+                        <input type="radio" id="updateFabric" name="newUpdate" value="Update">
+                        <label for="updateFabric" id="updateFabricLabel">Update</label><br />
+                    </div>
                 </div>
                 <div class="modal-footer">
+                    <div>
+                        <input type="checkbox" id="keepData" name="keepData" checked />
+                        <label for="keepData">Keep Current Data</label>
+                    </div>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-primary" onclick="submit()" data-dismiss="modal">Save changes</button>
                 </div>
             </div>
         </div>
@@ -71,7 +80,7 @@
                     <label for="name_box">Fabric Name</label>
                 </td>
                 <td class="td_border">
-                    <label for="update_box">Update Fabric</label>
+                    <label for="update_box">Select Fabric</label>
                 </td>
             </tr>
             <tr>
@@ -283,6 +292,8 @@
         <fieldset>
             <legend>Style</legend>
             <div class="RadioFont">
+                <input type="radio" id="no_style" name="style" value="no_style">
+                <label for="no_style">No Style</label><br />
                 <input type="radio" id="flat_fold" name="style" value="Flat Fold">
                 <label for="flat_fold">Flat Fold</label><br />
                 <input type="radio" id="board_large" name="style" value="Board: Large">
@@ -300,9 +311,7 @@
                 <input type="radio" id="charm_pack" name="style" value="Charm Pack">
                 <label for="charm_pack">Charm Pack</label><br />
                 <input type="radio" id="bundle" name="style" value="Bundle">
-                <label for="bundle">Bundle</label><br />
-                <input type="radio" id="no_style" name="style" value="no_style">
-                <label for="no_style">No Style</label>
+                <label for="bundle">Bundle</label>
             </div>
         </fieldset>
     </div>

@@ -113,14 +113,12 @@ function update_ul(list, element_append, list_name) {
 function add_list_item(list_name) {
     text = document.getElementById(list_name).value;
     tag_list = document.getElementById(list_name + "_list");
-
     addToArray(text, dropdown_data[`current_${list_name}s`]);
 
     update_ul(dropdown_data[`current_${list_name}s`], tag_list, list_name);
 }
 
 function delete_list_item(name, list_name) {
-    console.log(name);
     tag_list = document.getElementById(list_name + "_list");
 
     removeFromArray(name, dropdown_data[`current_${list_name}s`]);
@@ -172,9 +170,7 @@ function delete_data(list_name) {
 
     // Current text being removed from dropdown and database
     const text = document.getElementById(list_name + "_add_remove").value;
-    console.log(dropdown_data[list_name + '_new'])
     if (removeFromArray(text, dropdown_data[list_name + '_new'])) {
-        console.log('stuff')
         removeFromDropdown(list_name, text)
         return
     }
@@ -221,7 +217,6 @@ function deleteOption() {
         data: JSON.stringify(postData),
         success: function (data) {
             if (data.result) {
-                console.log('Success:', data);
                 removeFromDropdown(persistent_list_name, text)
             }
             else {
@@ -249,9 +244,13 @@ selectElements.forEach(select => {
 const update_fabric = document.getElementById('update_box');
 update_fabric.addEventListener('change', (event) => {
     let change_value = event.target.value;
-    console.log(change_value);
+    if (change_value == NOT_APPLICABLE) {
+        window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
+        updateURL();
+        updatePage();
+        return
+    }
     $.getJSON(`/get_specific_fabric?fabric=${change_value}`, fabricData => {
-        console.log(fabricData);
 
         let newUrl = 'add_inventory?fabric=' + fabricData.fabric_name.replace(/ /g, "_") + "&ext=" + fabricData.image_type;
         window.history.pushState({ path: newUrl }, '', newUrl);
@@ -281,6 +280,23 @@ fabric_name.addEventListener('keyup', function (event) {
     fabric_name_box.innerHTML = uppercaseWords(fabric_name.value);
 });
 
+function get_radio(name) {
+    let selected = document.querySelector(`input[name="${name}"]:checked`);
+    if (selected) {
+        let val = selected.value;
+        if ('no_style' === val) {
+            return null;
+        }
+        return val;
+    }
+    if (name !== 'style') {
+        throw new Error(`${name} is required`);
+    }
+    return null;
+}
+
+let data_to_submit;
+
 function submitData() {
     function check_no_data(elementID, required = false) {
         const data_value = document.getElementById(elementID).value;
@@ -293,20 +309,6 @@ function submitData() {
         return data_value;
     }
 
-    function get_radio(name) {
-        let selected = document.querySelector(`input[name="${name}"]:checked`);
-        if (selected) {
-            let val = selected.value;
-            if ('no_style' === val) {
-                return null;
-            }
-            return val;
-        }
-        if (name !== 'style') {
-            throw new Error(`${name} is required`);
-        }
-        return null;
-    }
 
     function checkCorrectData(data) {
         if (/_/.test(data.name)) {
@@ -337,10 +339,8 @@ function submitData() {
         param.data['style'] = get_radio('style');
 
         const imageInput = document.getElementById('imageInput');
-        console.log(imageInput);
         const imageFile = imageInput.files[0]; // Get the selected file
         if (imageFile) {
-            console.log(imageFile);
             param.data['image'] = imageFile; // Add the image file to param
         }
 
@@ -361,16 +361,53 @@ function submitData() {
         return;
     }
 
+    if (param.data.old_fabric) {
+        if (param.data.old_fabric.toLowerCase() != param.data.name.toLowerCase()) {
+            // Update or New Fabric
+            $('#newFabric').show().prop('checked', true);
+            $('#newFabricLabel').show().html(`Add Fabric: "${param.data.name}"`);
+            $('#updateFabric').show();
+            $('#updateFabricLabel').show().html(`Update Fabric: "${param.data.old_fabric}" -> "${param.data.name}"`);
+        }
+        else
+        {
+            // Update Fabric
+            $('#newFabric').hide();
+            $('#newFabricLabel').hide();
+            $('#updateFabric').show().prop('checked', true);
+            $('#updateFabricLabel').show().html(`Update Fabric: "${param.data.name}"`);
+        }
+    }
+    else
+    {
+        // New Fabric
+        $('#newFabric').show().prop('checked', true);
+        $('#newFabricLabel').show().html(`Add Fabric: "${param.data.name}"`);
+        $('#updateFabric').hide();
+        $('#updateFabricLabel').hide();
+    }
+
+    $('#submitModal').modal('show');
+    data_to_submit = param
+}
+
+function submit() {
+    // Check update or new
+    if (get_radio('newUpdate') == 'New') {
+        data_to_submit.data.old_fabric = '';
+        data_to_submit.data.old_ext = '';
+    }
+
     // Prepare FormData for the AJAX request
     const formData = new FormData();
-    for (const key in param.data) {
+    for (const key in data_to_submit.data) {
         // If the value is an array, append each item with the same key
-        if (Array.isArray(param.data[key])) {
-            param.data[key].forEach(item => {
+        if (Array.isArray(data_to_submit.data[key])) {
+            data_to_submit.data[key].forEach(item => {
                 formData.append(key, item);
             });
         } else {
-            formData.append(key, param.data[key]);
+            formData.append(key, data_to_submit.data[key]);
         }
     }
 
@@ -382,7 +419,11 @@ function submitData() {
         data: formData,
         success: (response) => {
             if (response.result) {
-                console.log('Successfully run');
+                window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
+                updateURL();
+                if (!$('#keepData').is(':checked')) {
+                    resetPage()
+                }
                 if (response.debug_msg) {
                     alert('Fabric added\nDebug message: ' + response.debug_msg);
                 } else {
@@ -416,7 +457,6 @@ function update_multi_dropdowns() {
 }
 
 function setImage(imagePath) {
-    console.log(imagePath);
     const imageInput = document.getElementById('imageInput');
 
     fetch(imagePath)
@@ -432,9 +472,32 @@ function setImage(imagePath) {
         .catch(error => console.error('Error setting image:', error));
 }
 
+function resetPage() {
+    // Reset text boxes
+    document.getElementById("name_box").value = "";
+    document.getElementById("rack").value = "";
+    document.getElementById("stack").value = "";
+    document.getElementById("width").value = "";
+    document.getElementById("yardage").value = "";
+
+    // Remove all tags and colors
+    dropdown_data['current_colors'] = [];
+    dropdown_data['current_tags'] = [];
+    update_multi_dropdowns();
+
+    // Reset image data
+    document.getElementById("fabric_name_box").innerHTML = "Fabric Name";
+    document.getElementById('ext_box').innerHTML = ".ext";
+    clearImage();
+
+    // Set Radio buttons to first option
+    document.getElementById('cotton').checked = true; // Material
+    document.getElementById('uncut').checked = true;  // Cut
+    document.getElementById('no_style').checked = true; // Style
+}
+
 function updatePage() {
     $.getJSON("/current_data", function (result) {
-        console.log(result);
 
         dropdown_data['tag'] = result['tag'];
         dropdown_data['collection'] = result['collection_name'];
@@ -443,9 +506,10 @@ function updatePage() {
         dropdown_data['fabric_line'] = result['fabric_line'];
         update_single_dropdowns();
 
+        resetPage();
+
         $.getJSON('/all_fabric_names', fabric_names => {
             const update_fabric_box = document.getElementById('update_box');
-            console.log(fabric_names);
             let new_text = null;
             if (urlParams) {
                 if (urlParams.fabric) {
@@ -457,9 +521,7 @@ function updatePage() {
 
         if (urlParams) {
             if (urlParams.fabric) {
-                console.log(urlParams.fabric);
                 $.getJSON(`/get_specific_fabric?fabric=${urlParams.fabric}`, fabricData => {
-                    console.log(fabricData);
 
                     // Set fabric name
                     document.getElementById("name_box").value = fabricData.fabric_name;
@@ -486,7 +548,6 @@ function updatePage() {
 
                     // Set style
                     if (fabricData.style) {
-                        console.log(fabricData.style);
                         document.getElementById(fabricData.style.toLowerCase().replace(/: | /g, "_")).checked = true;
                     }
 

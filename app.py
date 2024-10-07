@@ -8,8 +8,10 @@ from flask import Flask, render_template, request, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
 
-from db_scripts import connect_to_db
-all_fabric_data = connect_to_db.get_all_data()
+from db_scripts.db_commands import DB_Worker
+from db_scripts.db_commands import db_exception
+db_worker = DB_Worker()
+all_fabric_data = db_worker.get_all_data()
 import pprint
 pprint.pprint(all_fabric_data)
 
@@ -34,7 +36,7 @@ def current_fabric_data():
 
 @app.route('/current_data')
 def current_data():
-    return connect_to_db.current_dropdown_data()
+    return db_worker.current_dropdown_data()
 
 @app.route('/all_fabric_names')
 def all_fabric_names():
@@ -46,9 +48,9 @@ def connected_items():
     list_name = data.get('list_name')
     text_value = data.get('text_value')
     try:
-        connections, _ = connect_to_db.get_column_connections(list_name, text_value)
+        connections, _ = db_worker.get_column_connections(list_name, text_value)
         return {'result': True, 'connections': len(connections)}
-    except connect_to_db.db_exception as e:
+    except db_exception as e:
         return {'result': False, 'error_msg': e.error_msg}
     except Exception as e:
         return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
@@ -59,11 +61,13 @@ def delete_data():
     data = request.get_json()
     list_name = data.get('list_name')
     text_value = data.get('text_value')
-    connect_to_db.delete_column_value(list_name, text_value)
-
+    db_worker.delete_column_value(list_name, text_value)
+    
+    global all_fabric_data
+    all_fabric_data = db_worker.get_all_data()
     try:
         return {'result': True}
-    except connect_to_db.db_exception as e:
+    except db_exception as e:
         return {'result': False, 'error_msg': e.error_msg}
     except Exception as e:
         return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
@@ -101,12 +105,12 @@ def submit_collection():
         data_dict['tag'] = []
     
     try:
-        debug_msg = connect_to_db.add_fabric(data_dict, image_file)
+        debug_msg = db_worker.add_fabric(data_dict, image_file)
 
         # Update data
         global all_fabric_data
-        all_fabric_data = connect_to_db.get_all_data()
-    except connect_to_db.db_exception as e:
+        all_fabric_data = db_worker.get_all_data()
+    except db_exception as e:
         return {'result': False, 'error_msg': e.error_msg}
     except Exception as e:
         return {'result': False, 'error_msg': 'Code Error: ' + str(e)}

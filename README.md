@@ -24,4 +24,4 @@ Setup
   "backup_path": "path_to_backup_location"
 }
 
-Run <python app.py>
+Run "python app.py"

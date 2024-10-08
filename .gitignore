@@ -6,6 +6,8 @@
 # Codes specific files
 fabric_uploads/
 credentials.json
+updated_images.csv
+backup/
 
 # User-specific files
 *.rsuser

@@ -1,9 +1,14 @@
 import os
+import csv
 
 import pyodbc
 from werkzeug.utils import secure_filename
+import pandas as pd
 
+import sys
+sys.path.append(os.getcwd())
 from db_scripts import connect_to_db
+from modules import ListUtility
 
 
 UPLOAD_FOLDER = './fabric_uploads'
@@ -14,6 +19,49 @@ class db_exception(Exception):
     def __init__(self, error_msg):
         self.error_msg = error_msg
         super().__init__(self.error_msg)
+
+
+change_list_path = 'updated_images.csv'
+def get_image_list():
+    '''
+    Get list of current image names in updated_images
+    '''
+    updated_images = []
+    if os.path.exists(change_list_path):
+        with open(change_list_path, mode='r', newline='') as csvfile:
+            csv_reader = csv.reader(csvfile)
+
+            for row in csv_reader:
+                # First row has all the data
+                return row
+
+    return []
+
+def update_image_list(image_name):
+    '''
+    Add new item to updated_images.csv
+    
+    Args:
+        str: Image being added
+    
+    Return:
+        str: Error message
+    '''
+    try:
+        updated_images = get_image_list()
+        if ListUtility.add_unique_entry(updated_images, image_name):
+            # Save if new item is added
+
+            # Open the CSV file for writing
+            with open(change_list_path, mode='w', newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                
+                # Write the list as a single row
+                csv_writer.writerow(updated_images)
+        print(get_image_list())
+    except Exception as e:
+        print('Error', e)
+        return f'Error: {e}'
 
 
 def _add_entry(cursor, table, column, data):
@@ -294,6 +342,11 @@ class DB_Worker:
                         print(f'Removed image {full_path}')
                     else:
                         debug_list.append(f'Could not delete old picture at {full_path}')
+
+                # Add image name to list of images that need backed up
+                error_msg = update_image_list(filename)
+                if error_msg:
+                    debug_list.append(error_msg)
 
                 # Commit the transaction
                 self.cnxn.commit()

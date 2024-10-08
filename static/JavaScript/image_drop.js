@@ -69,3 +69,12 @@ function displayImage(file) {
     };
     reader.readAsDataURL(file);
 }
+
+function clearImage() {
+    // Clear the file input
+    imageInput.value = '';
+
+    // Clear the image preview
+    imagePreview.src = ''; // Remove the source
+    imagePreview.alt = 'No image selected'; // Optional: set an alt text
+}

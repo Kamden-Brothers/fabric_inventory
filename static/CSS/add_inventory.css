@@ -23,19 +23,23 @@
 }
 
 .x_button {
-    width: 20px; /* Fixed width */
-    height: 20px; /* Set a height for vertical alignment */
-    display: inline-block; /* Use inline-block for centering */
-    text-align: center; /* Center the text horizontally */
-    line-height: 15px; /* Set line-height equal to height for vertical centering */
-    border: 1px solid; /* Optional: add border for visibility */
-    background-color: #f0f0f0; /* Optional: background color */
-    margin-right: 10px; /* Add space to the right */
+
+    border: 1px solid;
+    background-color: #f0f0f0;
+    margin-right: 10px;
 }
 
 .input_box_div {
     background: #9BCBEB;
     padding: 4px;
+}
+
+.input_header_div {
+    background: #9BCBEB;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .text_box {

@@ -19,6 +19,15 @@ class db_exception(Exception):
         super().__init__(self.error_msg)
 
 
+def _delete_image(fabric_name, ext):
+    filename = secure_filename(fabric_name + ext)
+    full_path = os.path.join(UPLOAD_FOLDER, filename)
+    if os.path.exists(full_path):
+        os.remove(full_path)
+    else:
+        return f'Could not delete old picture at {full_path}'
+
+
 def _add_entry(cursor, table, column, data):
     value_str = ', '.join('?' for _ in column)
     column_str = ', '.join(column)
@@ -31,7 +40,6 @@ def _update_entry(cursor, search_id, search_column, table, column, data):
     set_str = ', '.join(f'{c}=?' for c in column)
 
     query_str = f'''UPDATE fabric_inventory.dbo.{table} SET {set_str} WHERE {search_column} = {search_id}'''
-    print(query_str)
     cursor.execute(query_str, data)
 
 
@@ -50,7 +58,7 @@ def _get_id(cursor, return_val, table, column, search_data, raise_ex=True, ignor
     
     set_str = ' AND '.join(f'{c}=?' for c in column)
     query_str = f'''SELECT {return_val} FROM fabric_inventory.dbo.{table} WHERE {set_str}'''
-    print(query_str)
+
     cursor.execute(query_str, search_data)
     fetch_val = (cursor.fetchone())
     if not fetch_val:
@@ -58,6 +66,26 @@ def _get_id(cursor, return_val, table, column, search_data, raise_ex=True, ignor
             raise db_exception(f'Could not find {search_data=} in {table=} {column=}')
         return []
     return fetch_val[0]
+
+def _get_multiple(cursor, return_vals, table, column, search_data, raise_ex=True, ignore_none=True):
+    '''
+    Passed in table and column should be hardcoded to avoid injection attack
+    '''
+    if ignore_none and search_data[0] is None:
+        return None
+
+    return_str = ', '.join(return_vals)
+
+    set_str = ' AND '.join(f'{c}=?' for c in column)
+    query_str = f'''SELECT {return_str} FROM fabric_inventory.dbo.{table} WHERE {set_str}'''
+
+    cursor.execute(query_str, search_data)
+    fetch_val = (cursor.fetchone())
+    if not fetch_val:
+        if raise_ex:
+            raise db_exception(f'Could not find {search_data=} in {table=} {column=}')
+        return []
+    return fetch_val
 
 
 def _get_ids(cursor, return_val, table, column, search_data, raise_ex=True, ignore_none=True):
@@ -126,21 +154,29 @@ class DB_Worker:
 
             return data_dict
 
-    def delete_fabric(self):
+    def delete_fabric(self, fabric_name):
+        debug_list = []
         with self.cnxn.cursor() as cursor:
             try:
-                name = 'Test Fabric'
-                
-                fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (name, ))
+                fabric_id, image_type = _get_multiple(cursor, ['fabric_id', 'image_type'], 'fabric', ['fabric_name'], (fabric_name, ))
+
+                # fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (fabric_name, ))
+
                 _delete_entry(cursor, 'color_junction', ['fabric_id'], (fabric_id, ))
                 _delete_entry(cursor, 'tag_junction', ['fabric_id'], (fabric_id, ))
                 _delete_entry(cursor, 'fabric', ['fabric_id'], (fabric_id, ))
+                
+                msg = _delete_image(fabric_name, image_type)
+                if msg:
+                    debug_list.append(msg)
 
                 # Commit the transaction
                 self.cnxn.commit()
             except Exception as e:
+                print(e)
                 self.cnxn.rollback()  # Roll back on error
                 raise e  # Re-raise the exception for handling further up
+        return ', '.join(debug_list)
 
     def delete_linked_item(self):
         '''
@@ -161,11 +197,9 @@ class DB_Worker:
                         FROM fabric_inventory.dbo.{table_name}_junction as junc
                         LEFT JOIN fabric_inventory.dbo.{table_name} ON {table_name}.{table_name}_id = junc.{table_name}_id
                         WHERE junc.fabric_id = ?'''
-        
-        print(query_str)
+
         cursor.execute(query_str, fabric_id)
         fetch_val = (cursor.fetchall())
-        print(fetch_val)
         return fetch_val
 
     def update_linked_collection(self, cursor, fabric_id, table_name, data):
@@ -174,16 +208,13 @@ class DB_Worker:
         remove_item_ids = [item_info[0] for item_info in old_tags if item_info[1] not in data[table_name]]
         old_item_names = [item_info[1] for item_info in old_tags]
         add_items = [tag for tag in data[table_name] if tag not in old_item_names]
-        print(f'{remove_item_ids=}')
-        print(f'{add_items=}')
 
         for item_id in remove_item_ids:
             _delete_entry(cursor, f'{table_name}_junction', [f'{table_name}_id'], (item_id,))
 
         for item_name in add_items:
             item_id = _get_id(cursor, f'{table_name}_id', table_name, [table_name], (item_name,))
-            print(item_name, item_id)
-            
+
             _add_entry(cursor, f'{table_name}_junction', ['fabric_id', f'{table_name}_id'], (fabric_id, item_id))
 
     def get_column_connections(self, column, value, passed_in_cursor=None):
@@ -288,15 +319,9 @@ class DB_Worker:
                 image_file.save(os.path.join(UPLOAD_FOLDER, filename))
 
                 if delete_image:
-                    print(delete_image)
-                    oldfilename = secure_filename(old_fabric + old_ext)
-                    image_file.save(os.path.join(UPLOAD_FOLDER, oldfilename))
-                    full_path = os.path.join(UPLOAD_FOLDER, oldfilename)
-                    if os.path.exists(full_path):
-                        os.remove(full_path)
-                        print(f'Removed image {full_path}')
-                    else:
-                        debug_list.append(f'Could not delete old picture at {full_path}')
+                    msg = _delete_image(old_fabric, old_ext)
+                    if msg:
+                        debug_list.append(msg)
 
                 # Add image name to list of images that need backed up
                 error_msg = track_images.update_image_list(filename)
@@ -366,4 +391,4 @@ class DB_Worker:
 
 if __name__ == '__main__':
     worker = DB_Worker()
-    worker.delete_column_value('collection', 'Cool')
+    worker.delete_fabric('Test Add Update')

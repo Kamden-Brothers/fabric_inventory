@@ -76,7 +76,7 @@ def backup_db(backup_path):
     # Backup Command
     backup = f"BACKUP DATABASE fabric_inventory TO DISK = '{backup_file_path}'"
 
-    with connect_to_db.connect_to_db() as cnxn:
+    with connect_to_db.connect_to_db(autocommit=True) as cnxn:
         cursor = cnxn.cursor()
         cursor.execute(backup)
         # Iterate through output

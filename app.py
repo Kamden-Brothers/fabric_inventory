@@ -80,6 +80,24 @@ def get_specific_fabric():
             return fabric
     return {'error_msg': 'Fabric not found'}
 
+@app.route('/delete_fabric', methods=['POST'])
+def delete_fabric():
+    try:
+        data_dict = request.form.to_dict()
+        print(data_dict)
+        debug_msg = db_worker.delete_fabric(data_dict['name'])
+    
+        # Update data
+        global all_fabric_data
+        all_fabric_data = db_worker.get_all_data()
+    except db_exception as e:
+        print(e)
+        return {'result': False, 'error_msg': e.error_msg}
+    except Exception as e:
+        print(e)
+        return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
+    return {'result': True, 'debug_msg': debug_msg}
+
 @app.route('/submit_collection', methods=['POST'])
 def submit_collection():
     data_dict = request.form.to_dict()
@@ -111,8 +129,10 @@ def submit_collection():
         global all_fabric_data
         all_fabric_data = db_worker.get_all_data()
     except db_exception as e:
+        print(e)
         return {'result': False, 'error_msg': e.error_msg}
     except Exception as e:
+        print(e)
         return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
 
     return {'result': True, 'debug_msg': debug_msg}

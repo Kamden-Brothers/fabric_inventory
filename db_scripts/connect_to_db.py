@@ -2,7 +2,7 @@ import json
 
 import pyodbc
 
-def connect_to_db():
+def connect_to_db(autocommit=False):
     try:
         with open('credentials.json', 'r') as file:
             data = json.load(file)
@@ -21,5 +21,5 @@ def connect_to_db():
             server=f'{server_name}', 
             database=f'{db}', 
             trusted_connection='yes',
-            autocommit=True
+            autocommit=autocommit
         )

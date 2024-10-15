@@ -5,8 +5,8 @@ dropdown_data['collection'] = [];
 dropdown_data['collection_new'] = [];
 dropdown_data['designer'] = [];
 dropdown_data['designer_new'] = [];
-dropdown_data['fabric_line'] = [];
-dropdown_data['fabric_line_new'] = [];
+dropdown_data['fabricline'] = [];
+dropdown_data['fabricline_new'] = [];
 dropdown_data['current_colors'] = []; // List of connected colors
 dropdown_data['color'] = [];
 dropdown_data['color_new'] = [];
@@ -77,7 +77,7 @@ function createOption(text) {
     return option;
 }
 
-function update_dropdown(list, element_append, new_text, add_na = true) {
+function update_dropdown(list, element_append, new_text, add_na, list_name) {
     list = list.sort((a, b) => {
         if (a.toLowerCase() < b.toLowerCase()) {
             return -1;
@@ -104,7 +104,7 @@ function update_ul(list, element_append, list_name) {
     element_append.innerHTML = "";
     list.forEach((name) => {
         li = document.createElement("li");
-        li.innerHTML = `<button class="x_button" onclick="delete_list_item('${name}', '${list_name}')">x</button><span>${name}</span>`;
+        li.innerHTML = `<button class="x_button" onclick="delete_list_item('${name}', '${list_name}')">&times;</button><span>${name}</span>`;
 
         element_append.appendChild(li);
     });
@@ -136,7 +136,7 @@ function add_data(list_name) {
     const collection_dropdown = document.getElementById(list_name);
     if (addToArray(text, dropdown_data[list_name])) {
         addToArray(text, dropdown_data[list_name + '_new'])
-        update_dropdown(dropdown_data[list_name], collection_dropdown, text, add_na);
+        update_dropdown(dropdown_data[list_name], collection_dropdown, text, add_na, list_name);
         // text_box.value = "";
     } else if (text) {
         dropdown_data[list_name].forEach(item => {
@@ -153,7 +153,7 @@ function removeFromDropdown(list_name, text) {
     collection_dropdown = document.getElementById(list_name);
 
     if (removeFromArray(text, dropdown_data[list_name])) {
-        update_dropdown(dropdown_data[list_name], collection_dropdown, null, add_na);
+        update_dropdown(dropdown_data[list_name], collection_dropdown, null, add_na, list_name);
         // text_box.value = "";
 
         if (dropdown_data[`current_${list_name}s`]) {
@@ -232,8 +232,18 @@ function deleteOption() {
 
 const selectElements = document.querySelectorAll('.input-select');
 selectElements.forEach(select => {
-    select.addEventListener('change', (event) => {
-        const inputText = event.target.value;
+    // Uncomment and comment out mouseup to just have event called on change
+    //select.addEventListener('change', (event) => {
+    //    const inputText = event.target.value;
+    //    const relatedInput = document.getElementById(event.target.id + '_add_remove');
+    //    if (relatedInput) {
+    //        relatedInput.value = inputText;
+    //    }
+    //});
+
+    // Update text box whenever dropdown is clicked
+    select.addEventListener('mouseup', function () {
+        const inputText = select.value;
         const relatedInput = document.getElementById(event.target.id + '_add_remove');
         if (relatedInput) {
             relatedInput.value = inputText;
@@ -295,6 +305,50 @@ function get_radio(name) {
     return null;
 }
 
+function deleteFabricWarning() {
+    if (!urlParams.fabric) {
+        console.log("No Fabric Loaded")
+        return
+    }
+    const removeMessage = document.getElementById('DeleteFabricMessage')
+    removeMessage.innerHTML = `Remove Fabric <u>${urlParams.fabric}</u>?`
+
+    $('#deleteModal').modal('show');
+
+}
+
+function deleteFabric() {
+
+    // Prepare FormData for the AJAX request
+    const formData = new FormData();
+    formData.append('name', urlParams.fabric);
+
+    $.ajax({
+        type: "POST",
+        url: "/delete_fabric",
+        contentType: false,
+        processData: false,
+        data: formData,
+        success: (response) => {
+            if (response.result) {
+                window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
+                updateURL();
+                resetPage()
+                if (response.debug_msg) {
+                    alert('Fabric Deleted\nDebug message: ' + response.debug_msg);
+                } else {
+                    alert('Fabric Deleted');
+                }
+            } else {
+                alert(response.error_msg);
+            }
+        },
+        error: (jqXHR, textStatus, errorThrown) => {
+            console.error('Error during deletion:', textStatus, errorThrown);
+        }
+    });
+}
+
 let data_to_submit;
 
 function submitData() {
@@ -323,7 +377,7 @@ function submitData() {
         param.data['name'] = uppercaseWords(check_no_data('name_box', true));
         param.data['collection'] = check_no_data('collection');
         param.data['designer'] = check_no_data('designer');
-        param.data['fabric_line'] = check_no_data('fabric_line');
+        param.data['fabric_line'] = check_no_data('fabricline');
         param.data['selvage'] = check_no_data('selvage');
         param.data['width'] = check_no_data('width', true);
         param.data['yardage'] = check_no_data('yardage', true);
@@ -440,9 +494,9 @@ function submit() {
 }
 
 function update_single_dropdowns() {
-    ['collection', 'designer', 'fabric_line'].forEach(list_name => {
+    ['collection', 'designer', 'fabricline'].forEach(list_name => {
         const collection_dropdown = document.getElementById(list_name);
-        update_dropdown(dropdown_data[list_name], collection_dropdown);
+        update_dropdown(dropdown_data[list_name], collection_dropdown, null, true, list_name);
     });
 }
 
@@ -503,7 +557,7 @@ function updatePage() {
         dropdown_data['collection'] = result['collection_name'];
         dropdown_data['color'] = result['color'];
         dropdown_data['designer'] = result['designer'];
-        dropdown_data['fabric_line'] = result['fabric_line'];
+        dropdown_data['fabricline'] = result['fabric_line'];
         update_single_dropdowns();
 
         resetPage();
@@ -516,7 +570,7 @@ function updatePage() {
                     new_text = urlParams.fabric.replace(/_/g, ' ');
                 }
             }
-            update_dropdown(fabric_names, update_fabric_box, new_text, true);
+            update_dropdown(fabric_names, update_fabric_box, new_text, true, 'update_box');
         });
 
         if (urlParams) {
@@ -531,7 +585,7 @@ function updatePage() {
 
                     document.getElementById("collection").value = fabricData.collection;
                     document.getElementById("designer").value = fabricData.designer;
-                    document.getElementById("fabric_line").value = fabricData.fabric_line;
+                    document.getElementById("fabricline").value = fabricData.fabric_line;
 
                     // Set year on selvage
                     document.getElementById("selvage").value = fabricData.year_on_selvage;

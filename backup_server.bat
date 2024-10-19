@@ -1,0 +1,3 @@
+call conda activate fabric_server
+python backup_data.py
+set /p=Hit ENTER to exit...

@@ -7,6 +7,7 @@
     
     <link rel="stylesheet" href="/static/CSS/Header.css">
     <link rel="stylesheet" href="/static/CSS/view_inventory.css">
+    <link rel="stylesheet" href="/static/CSS/dropdown.css">
     <title>Inventory</title>
 </head>
 <body>
@@ -20,37 +21,149 @@
         </h1>
     </div>
 
-    <div class="topnav">
-        <select name="SearchOption" id="SearchOption">
-            <option value="Key Word">Key Word</option>
-            <option value="Minimum Miles">Minimum Miles</option>
-            <option value="Maximum Miles">Maximum Miles</option>
-            <option value="Minimum Price">Minimum Price</option>
-            <option value="Maximum Price">Maximum Price</option>
-            <option value="VIN">VIN</option>
-        </select>
-
-        <input type="text" placeholder="Search.." id="SearchBar" onkeyup="search_cars()">
-        <button onclick="search_cars()">Search</button>
-
-        <span>
-            <label for="SortVehicles">Sort By:</label>
-
-            <select name="SortVehicles" id="SortVehicles">
-                <option value="Year">Year</option>
-                <option value="Miles">Miles</option>
-                <option value="Price">Price</option>
-            </select>
-
-            <button id="SortButton" type="button" class="ArrowButton" onclick="flip_sort()">
-                ↑
-            </button>
-        </span>
+    <div class="searchDiv">
+        <input type="text" placeholder="Search Fabric" id="SearchBar">
+        <button onclick="searchFabric()">Apply Settings</button>
     </div>
+    <table class="optionTable">
+        <tr>
+
+            <td class="optionTD">
+                <div id="materialOptions" class="dropdown-check-list" tabindex="100">
+                    <span class="anchor">Select Material</span>
+
+                    <div class="items">
+                        <input type="checkbox" id="material_option_1" name="material" value="Cotton">
+                        <label for="material_option_1">Cotton</label><br>
+                        <input type="checkbox" id="material_option_2" name="material" value="Flannel">
+                        <label for="material_option_2">Flannel</label><br>
+                        <input type="checkbox" id="material_option_3" name="material" value="Fleece">
+                        <label for="material_option_3">Fleece</label><br>
+                        <input type="checkbox" id="material_option_4" name="material" value="Wool">
+                        <label for="material_option_4">Wool</label><br>
+                        <input type="checkbox" id="material_option_5" name="material" value="Canvas">
+                        <label for="material_option_5">Canvas</label><br>
+                    </div>
+                </div>
+            </td>
+            <td class="optionTD">
+                <div id="cutOptions" class="dropdown-check-list" tabindex="100">
+                    <span class="anchor">Select Cut</span>
+
+                    <div class="items">
+                        <input type="checkbox" id="cut_option_1" name="cut_option" value="Uncut">
+                        <label for="cut_option_1">Uncut</label><br>
+                        <input type="checkbox" id="cut_option_2" name="cut_option" value="Partially">
+                        <label for="cut_option_2">Partially</label><br>
+                        <input type="checkbox" id="cut_option_3" name="cut_option" value="Scrappy">
+                        <label for="cut_option_3">Scrappy</label><br>
+                        <input type="checkbox" id="cut_option_4" name="cut_option" value="Multiple Pieces">
+                        <label for="cut_option_4">Multiple Pieces</label><br>
+                    </div>
+                </div>
+            </td>
+            <td class="optionTD">
+                <div id="styleOptions" class="dropdown-check-list" tabindex="100">
+                    <span class="anchor">Select Style</span>
+
+                    <div class="items">
+                        <input type="checkbox" id="style_option_1" name="style_option" value="No Style">
+                        <label for="style_option_1">No Style</label><br>
+                        <input type="checkbox" id="style_option_2" name="style_option" value="Flat Fold">
+                        <label for="style_option_2">Flat Fold</label><br>
+                        <input type="checkbox" id="style_option_3" name="style_option" value="Board: Large">
+                        <label for="style_option_3">Board: Large</label><br>
+                        <input type="checkbox" id="style_option_4" name="style_option" value="Board: Small">
+                        <label for="style_option_4">Board: Small</label><br>
+                        <input type="checkbox" id="style_option_5" name="style_option" value="Fat Quarter">
+                        <label for="style_option_5">Fat Quarter</label><br>
+                        <input type="checkbox" id="style_option_6" name="style_option" value="Apron">
+                        <label for="style_option_6">Apron</label><br>
+                        <input type="checkbox" id="style_option_7" name="style_option" value="Panel">
+                        <label for="style_option_7">Panel</label><br>
+                        <input type="checkbox" id="style_option_8" name="style_option" value="Kit">
+                        <label for="style_option_8">Kit</label><br>
+                        <input type="checkbox" id="style_option_9" name="style_option" value="Charm Pack">
+                        <label for="style_option_9">Charm Pack</label><br>
+                        <input type="checkbox" id="style_option_10" name="style_option" value="Bundle">
+                        <label for="style_option_10">Bundle</label>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <!--<table class="optionTable">
+        <tr>
+            <td>
+            </td>
+            <td class="optionTD">
+                <span class="CheckBoxes">
+                    <span class="optionTitle">
+                        Material
+                    </span>
+                    <br />
+
+                    <input type="checkbox" id="material_option_1" name="material" value="Cotton">
+                    <label for="material_option_1">Cotton</label><br>
+                    <input type="checkbox" id="material_option_2" name="material" value="Flannel">
+                    <label for="material_option_2">Flannel</label><br>
+                    <input type="checkbox" id="material_option_3" name="material" value="Fleece">
+                    <label for="material_option_3">Fleece</label><br>
+                    <input type="checkbox" id="material_option_4" name="material" value="Wool">
+                    <label for="material_option_4">Wool</label><br>
+                    <input type="checkbox" id="material_option_5" name="material" value="Canvas">
+                    <label for="material_option_5">Canvas</label><br>
+                </span>
+            </td>
+
+            <td class="optionTD">
+                <span class="CheckBoxes">
+                    <span class="optionTitle">
+                        Cut
+                    </span>
+                    <br />
+
+                    <input type="checkbox" id="cut_option_1" name="cut_option" value="Uncut">
+                    <label for="cut_option_1">Uncut</label><br>
+                    <input type="checkbox" id="cut_option_2" name="cut_option" value="Partially">
+                    <label for="cut_option_2">Partially</label><br>
+                    <input type="checkbox" id="cut_option_3" name="cut_option" value="Scrappy">
+                    <label for="cut_option_3">Scrappy</label><br>
+                    <input type="checkbox" id="cut_option_4" name="cut_option" value="Multiple Pieces">
+                    <label for="cut_option_4">Multiple Pieces</label><br>
+                </span>
+            </td>
+
+
+            <td class="optionTD">
+                <span>
+                    Another
+                </span>
+
+                <input type="text" placeholder="Search.." id="SearchBar" onkeyup="search_cars()">
+                <button onclick="search_cars()">Search</button>
+
+                <span>
+                    <label for="SortVehicles">Sort By:</label>
+
+                    <select name="SortVehicles" id="SortVehicles">
+                        <option value="Year">Year</option>
+                        <option value="Miles">Miles</option>
+                        <option value="Price">Price</option>
+                    </select>
+
+                    <button id="SortButton" type="button" class="ArrowButton" onclick="flip_sort()">
+                        ↑
+                    </button>
+                </span>
+            </td>
+        </tr>
+    </table>-->
 
     <table id="FabricTable"></table>
 
     <script type="text/javascript" src="static\JavaScript\jquery.js"></script>
     <script type="text/javascript" src="static\JavaScript\view_inventory.js"></script>
+    <script type="text/javascript" src="static\JavaScript\dropdown.js"></script>
 </body>
 </html>

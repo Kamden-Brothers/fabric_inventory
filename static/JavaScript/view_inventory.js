@@ -1,7 +1,4 @@
-const UPLOAD_FOLDER = './fabric_uploads/'
-
-
-
+const UPLOAD_FOLDER = './fabric_uploads/';
 
 class Fabric {
     constructor(data) {
@@ -10,28 +7,24 @@ class Fabric {
         let fabric_ref = 'add_inventory?fabric=' + data.fabric_name.replace(/ /g, "_") + "&ext=" + data.image_type;
 
         // Create first table cell for the image
-        const td_1 = document.createElement('td');
-        let img_link = document.createElement('a');
-        img_link.href = fabric_ref;
+        const td_1 = $('<td>').addClass('FabricItemContainer');
 
-        let img = document.createElement('img');
-        img.src = UPLOAD_FOLDER + data.fabric_name.replace(/ /g, "_") + data.image_type;
-        img.classList.add("FabricImage");
+        const img_link = $('<a>').attr('href', fabric_ref);
+        const img = $('<img>')
+            .attr('src', UPLOAD_FOLDER + data.fabric_name.replace(/ /g, "_") + data.image_type)
+            .addClass('FabricImage');
 
-        td_1.classList.add('FabricItemContainer');
-        img_link.appendChild(img);
-        td_1.appendChild(img_link);
+        img_link.append(img);
+        td_1.append(img_link);
 
         // Create second table cell for the fabric name link
-        let link = document.createElement('a');
-        link.classList.add('FabricHeading')
-        link.href = fabric_ref;
-        link.title = data.fabric_name + ' Other';
-        link.textContent = data.fabric_name;
+        const link = $('<a>')
+            .addClass('FabricHeading')
+            .attr('href', fabric_ref)
+            .attr('title', data.fabric_name + ' Other')
+            .text(data.fabric_name);
 
-        td_1.appendChild(link);
-
-        const expanded_data_div = document.createElement('div')
+        td_1.append(link);
 
         // Create dictionary for Relevant Data
         const fabricDetails = [
@@ -49,49 +42,51 @@ class Fabric {
             { heading: 'Style:', data: data.style },
             { heading: 'Colors:', data: data.color.sort().join(', ') },
             { heading: 'Tags:', data: data.tag.sort().join(', ') }
-        ]
+        ];
 
         fabricDetails.forEach(detail => {
-            let detailDiv = document.createElement('div'); // Wrap each detail in a div
+            const detailDiv = $('<div>'); // Wrap each detail in a div
 
-            let headerSpan = document.createElement('span');
-            headerSpan.classList.add('FabricHeader');
-            headerSpan.textContent = detail.heading;
-            detailDiv.appendChild(headerSpan);
+            const headerSpan = $('<span>').addClass('FabricHeader').text(detail.heading);
+            const dataSpan = $('<span>').addClass('FabricData').text(detail.data);
 
-            let dataSpan = document.createElement('span');
-            dataSpan.classList.add('FabricData');
-            dataSpan.textContent = detail.data;
-            detailDiv.appendChild(dataSpan);
+            detailDiv.append(headerSpan);
+            detailDiv.append(dataSpan);
 
-            td_1.appendChild(detailDiv); // Append the detail div to td_2
+            td_1.append(detailDiv); // Append the detail div to td_1
         });
 
-
-        this.htmlObject = td_1; // Store the complete table row
+        this.htmlObject = td_1; // Store the complete table cell
     }
 }
 
-var fabric_data = []
+let fabric_data = [];
 
+$(document).ready(function () {
+    $.getJSON("/current_fabric_data", function (all_data) {
+        console.log(all_data);
+        all_data.forEach(data => {
+            fabric_data.push(new Fabric(data));
+        });
 
-$.getJSON("/current_fabric_data", function (all_data) {
-    console.log(all_data)
-    all_data.forEach(data => {
-        fabric_data.push(new Fabric(data))
-    })
-    fabric_table = document.getElementById('FabricTable')
+        display_fabric();
+    });
+});
 
-    let i = 0;
-    let tr
-    fabric_data.forEach(fabric => {
+function display_fabric() {
+    const fabric_table = $('#FabricTable');
+    fabric_table.empty(); // Clear the table
+
+    let tr;
+    fabric_data.forEach((fabric, i) => {
         if (i % 4 === 0) {
-            tr = document.createElement('tr');
-            fabric_table.appendChild(tr);
+            tr = $('<tr>'); // Create a new table row
+            fabric_table.append(tr);
         }
-        tr.appendChild(fabric.htmlObject);
-        i += 1;
-    })
+        tr.append(fabric.htmlObject); // Append the fabric cell to the row
+    });
+}
 
-})
-
+function searchFabric() {
+    console.log('clicked');
+}

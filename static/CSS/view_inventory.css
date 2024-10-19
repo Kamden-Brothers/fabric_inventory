@@ -17,7 +17,23 @@
 table {
     border-collapse: collapse;
     background: white;
-    width: 100%;
+    padding: 5px 0px 5px 0px;
+}
+
+.searchDiv {
+    display: block;
+    padding: 10px;
+}
+
+.optionTable {
+    display: block;
+    padding: 5px 0px 5px 0px;
+    vertical-align: top;
+}
+
+.optionTD {
+    vertical-align: top;
+    border: solid;
 }
 
 .DataDiv {

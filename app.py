@@ -22,6 +22,10 @@ app = Flask(__name__, template_folder='./templates', static_folder='./static')
 def add_inventory():
     return render_template("add_inventory.html")
 
+@app.route('/testing')
+def testing():
+    return render_template("testing.html")
+
 @app.route('/fabric_uploads/<path:filename>')
 def upload_file(filename):
     return send_from_directory('fabric_uploads', filename)

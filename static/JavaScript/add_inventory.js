@@ -261,7 +261,10 @@ update_fabric.addEventListener('change', (event) => {
         return
     }
     $.getJSON(`/get_specific_fabric?fabric=${change_value}`, fabricData => {
-
+        if (fabricData.error_msg) {
+            alert('Failed to get fabric ' + change_value)
+            return
+        }
         let newUrl = 'add_inventory?fabric=' + fabricData.fabric_name.replace(/ /g, "_") + "&ext=" + fabricData.image_type;
         window.history.pushState({ path: newUrl }, '', newUrl);
 
@@ -575,11 +578,18 @@ function updatePage() {
 
         if (urlParams) {
             if (urlParams.fabric) {
+                console.log(urlParams.fabric)
                 $.getJSON(`/get_specific_fabric?fabric=${urlParams.fabric}`, fabricData => {
-
+                    if (fabricData.error_msg) {
+                        document.getElementById("name_box").value = 'Failed to load: ' + urlParams.fabric;
+                        //window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
+                        updateURL();
+                        return;
+                    }
                     // Set fabric name
                     document.getElementById("name_box").value = fabricData.fabric_name;
 
+                    console.log(fabricData)
                     // Set material
                     document.getElementById(fabricData.material.toLowerCase()).checked = true;
 
@@ -609,12 +619,11 @@ function updatePage() {
                     if (fabricData.cut) {
                         document.getElementById(fabricData.cut.toLowerCase().replace(/ /g, "_")).checked = true;
                     }
-
-                    dropdown_data['current_colors'] = fabricData.color;
-                    dropdown_data['current_tags'] = fabricData.tag;
                     update_multi_dropdowns();
 
-                    setImage('fabric_uploads\\' + fabricData.fabric_name.replace(/ /g, "_") + fabricData.image_type);
+                    setImage('fabric_uploads\\' + fabricData.fabric_name.replace(/ /g, "_").replace(/[^a-zA-Z0-9\s_-]/g, '') + fabricData.image_type);
+                    dropdown_data['current_colors'] = fabricData.color;
+                    dropdown_data['current_tags'] = fabricData.tag;
                 });
             }
         }

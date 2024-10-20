@@ -67,6 +67,20 @@ def _get_id(cursor, return_val, table, column, search_data, raise_ex=True, ignor
         return []
     return fetch_val[0]
 
+def _get_fabric_id(cursor, fabric_name, raise_ex=True):
+    '''
+    '''
+    
+    query_str = f"""SELECT fabric_id FROM fabric_inventory.dbo.fabric WHERE dbo.CleanString(fabric_name) LIKE '%' + dbo.CleanString({fabric_name}) + '%'"""
+    cursor.execute(query_str, search_data)
+    fetch_val = (cursor.fetchone())
+
+    if not fetch_val:
+        if raise_ex:
+            raise db_exception(f'Could not find fabric {fabric_name}')
+        return []
+    return fetch_val[0]
+
 def _get_multiple(cursor, return_vals, table, column, search_data, raise_ex=True, ignore_none=True):
     '''
     Passed in table and column should be hardcoded to avoid injection attack
@@ -159,8 +173,6 @@ class DB_Worker:
         with self.cnxn.cursor() as cursor:
             try:
                 fabric_id, image_type = _get_multiple(cursor, ['fabric_id', 'image_type'], 'fabric', ['fabric_name'], (fabric_name, ))
-
-                # fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (fabric_name, ))
 
                 _delete_entry(cursor, 'color_junction', ['fabric_id'], (fabric_id, ))
                 _delete_entry(cursor, 'tag_junction', ['fabric_id'], (fabric_id, ))

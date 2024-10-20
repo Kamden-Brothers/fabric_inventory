@@ -76,3 +76,8 @@ table {
     aspect-ratio: 2/1;
     object-fit: cover;
 }
+
+
+.Rotate {
+    transform: rotate(180deg) scaleX(-1);
+}

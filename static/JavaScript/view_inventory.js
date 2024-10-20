@@ -1,5 +1,58 @@
 const UPLOAD_FOLDER = './fabric_uploads/';
 
+let asc_desc_sort = 1;
+let currentFabric;
+
+function sortFabric(items, sort_attribute = "fabric_name") {
+    console.log(`Sorting fabric by ${sort_attribute}`)
+    return items.sort((a, b) => {
+        let nameA, nameB;
+        if (sort_attribute === "fabric_name") {
+            nameA = a.data.fabric_name.toUpperCase().replace('-', '');
+            nameB = b.data.fabric_name.toUpperCase().replace('-', '');
+        } else {
+            if (!a.data[sort_attribute]) {
+                return 1;
+            }
+            if (!b.data[sort_attribute]) {
+                return -1;
+            }
+                
+            nameA = a.data[sort_attribute].toUpperCase();
+            nameB = b.data[sort_attribute].toUpperCase();
+        }
+
+        return (nameA < nameB ? -1 : (nameA > nameB ? 1 : 0)) * asc_desc_sort;
+    })
+}
+
+function filterFabric(items, key, values) {
+    return items.filter(item => {
+        // Check if any of the values match the item's property
+        return values.some(value => item.data[key] === value);
+    });
+}
+
+function filterFabricRange(items, key, min_value, max_value) {
+    console.log(`Filtering ${key}`)
+    if (min_value) {
+        console.log(min_value)
+        items = items.filter(item => {
+            return +(item.data[key]) >= min_value
+        })
+    }
+    if (max_value) {
+        console.log(max_value)
+        items = items.filter(item => {
+            console.log((item.data[key]))
+            console.log(+(item.data[key]))
+            return +(item.data[key]) <= max_value
+        })
+    }
+
+    return items
+}
+
 class Fabric {
     constructor(data) {
         this.data = data;
@@ -11,7 +64,7 @@ class Fabric {
 
         const img_link = $('<a>').attr('href', fabric_ref);
         const img = $('<img>')
-            .attr('src', UPLOAD_FOLDER + data.fabric_name.replace(/ /g, "_") + data.image_type)
+            .attr('src', UPLOAD_FOLDER + data.fabric_name.replace(/ /g, "_").replace(/[^a-zA-Z0-9\s_-]/g, '') + data.image_type)
             .addClass('FabricImage');
 
         img_link.append(img);
@@ -68,17 +121,18 @@ $(document).ready(function () {
         all_data.forEach(data => {
             fabric_data.push(new Fabric(data));
         });
-
-        display_fabric();
+        fabric_data = sortFabric(fabric_data)
+        currentFabric = fabric_data
+        display_fabric(currentFabric);
     });
 });
 
-function display_fabric() {
+function display_fabric(f_list) {
     const fabric_table = $('#FabricTable');
     fabric_table.empty(); // Clear the table
 
     let tr;
-    fabric_data.forEach((fabric, i) => {
+    f_list.forEach((fabric, i) => {
         if (i % 4 === 0) {
             tr = $('<tr>'); // Create a new table row
             fabric_table.append(tr);
@@ -86,7 +140,54 @@ function display_fabric() {
         tr.append(fabric.htmlObject); // Append the fabric cell to the row
     });
 }
+const SortFabric = $('#SortFabric');
+SortFabric.change(event => {
+    const sortValue = event.target.value;
+    currentFabric = sortFabric(currentFabric, sortValue);
+    display_fabric(currentFabric);
+});
+
+// Change asc desc status
+function flip_sort() {
+    const SortButton = $("#SortButton");
+    if (SortButton.hasClass("Rotate")) {
+        asc_desc_sort = 1;
+        SortButton.removeClass("Rotate");
+    } else {
+        asc_desc_sort = -1;
+        SortButton.addClass("Rotate");
+    }
+    currentFabric = currentFabric.reverse()
+    display_fabric(currentFabric);
+}
 
 function searchFabric() {
-    console.log('clicked');
+    let searchOptions = {}
+    searchOptions['material'] = []
+    searchOptions['cut'] = []
+    searchOptions['style'] = []
+    for (const key in searchOptions) {
+        $(`input[name=${key}]:checked`).each(function () {
+            // Push the value of each checked checkbox into the array
+            searchOptions[key].push($(this).val());
+        });
+    }
+
+    let currentFabric = fabric_data;
+    for (const key in searchOptions) {
+        const values = searchOptions[key];
+        if (values.length != 0) {
+            currentFabric = filterFabric(currentFabric, key, values);
+        }
+    }
+    
+    const MinWidth = $('#MinWidth').val();
+    const MaxWidth = $('#MaxWidth').val();
+    const MinYardage = $('#MinYardage').val();
+    const MaxYardage = $('#MaxYardage').val();
+
+    currentFabric = filterFabricRange(currentFabric, 'width', +(MinWidth), +(MaxWidth));
+    currentFabric = filterFabricRange(currentFabric, 'yardage', +(MinYardage), +(MaxYardage));
+
+    display_fabric(currentFabric);
 }

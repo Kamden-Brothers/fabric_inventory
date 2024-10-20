@@ -24,6 +24,29 @@
     <div class="searchDiv">
         <input type="text" placeholder="Search Fabric" id="SearchBar">
         <button onclick="searchFabric()">Apply Settings</button>
+
+
+        <span>
+            <label for="SortFabric">Sort By:</label>
+
+            <select name="SortFabric" id="SortFabric">
+                <option value="fabric_name">Fabric Name</option>
+                <option value="material">Material</option>
+                <option value="style">Style</option>
+                <option value="collection">Collection</option>
+                <option value="designer">Designer</option>
+                <option value="location">Location</option>
+                <option value="width">Width</option>
+                <option value="yardage">Yardage</option>
+                <option value="area">Area</option>
+                <option value="color">Color?</option>
+                <option value="tag">Tag?</option>
+            </select>
+
+            <button id="SortButton" type="button" class="ArrowButton" onclick="flip_sort()">
+                ↑
+            </button>
+        </span>
     </div>
     <table class="optionTable">
         <tr>
@@ -51,13 +74,13 @@
                     <span class="anchor">Select Cut</span>
 
                     <div class="items">
-                        <input type="checkbox" id="cut_option_1" name="cut_option" value="Uncut">
+                        <input type="checkbox" id="cut_option_1" name="cut" value="Uncut">
                         <label for="cut_option_1">Uncut</label><br>
-                        <input type="checkbox" id="cut_option_2" name="cut_option" value="Partially">
+                        <input type="checkbox" id="cut_option_2" name="cut" value="Partially">
                         <label for="cut_option_2">Partially</label><br>
-                        <input type="checkbox" id="cut_option_3" name="cut_option" value="Scrappy">
+                        <input type="checkbox" id="cut_option_3" name="cut" value="Scrappy">
                         <label for="cut_option_3">Scrappy</label><br>
-                        <input type="checkbox" id="cut_option_4" name="cut_option" value="Multiple Pieces">
+                        <input type="checkbox" id="cut_option_4" name="cut" value="Multiple Pieces">
                         <label for="cut_option_4">Multiple Pieces</label><br>
                     </div>
                 </div>
@@ -67,28 +90,42 @@
                     <span class="anchor">Select Style</span>
 
                     <div class="items">
-                        <input type="checkbox" id="style_option_1" name="style_option" value="No Style">
+                        <input type="checkbox" id="style_option_1" name="style" value="No Style">
                         <label for="style_option_1">No Style</label><br>
-                        <input type="checkbox" id="style_option_2" name="style_option" value="Flat Fold">
+                        <input type="checkbox" id="style_option_2" name="style" value="Flat Fold">
                         <label for="style_option_2">Flat Fold</label><br>
-                        <input type="checkbox" id="style_option_3" name="style_option" value="Board: Large">
+                        <input type="checkbox" id="style_option_3" name="style" value="Board: Large">
                         <label for="style_option_3">Board: Large</label><br>
-                        <input type="checkbox" id="style_option_4" name="style_option" value="Board: Small">
+                        <input type="checkbox" id="style_option_4" name="style" value="Board: Small">
                         <label for="style_option_4">Board: Small</label><br>
-                        <input type="checkbox" id="style_option_5" name="style_option" value="Fat Quarter">
+                        <input type="checkbox" id="style_option_5" name="style" value="Fat Quarter">
                         <label for="style_option_5">Fat Quarter</label><br>
-                        <input type="checkbox" id="style_option_6" name="style_option" value="Apron">
+                        <input type="checkbox" id="style_option_6" name="style" value="Apron">
                         <label for="style_option_6">Apron</label><br>
-                        <input type="checkbox" id="style_option_7" name="style_option" value="Panel">
+                        <input type="checkbox" id="style_option_7" name="style" value="Panel">
                         <label for="style_option_7">Panel</label><br>
-                        <input type="checkbox" id="style_option_8" name="style_option" value="Kit">
+                        <input type="checkbox" id="style_option_8" name="style" value="Kit">
                         <label for="style_option_8">Kit</label><br>
-                        <input type="checkbox" id="style_option_9" name="style_option" value="Charm Pack">
+                        <input type="checkbox" id="style_option_9" name="style" value="Charm Pack">
                         <label for="style_option_9">Charm Pack</label><br>
-                        <input type="checkbox" id="style_option_10" name="style_option" value="Bundle">
+                        <input type="checkbox" id="style_option_10" name="style" value="Bundle">
                         <label for="style_option_10">Bundle</label>
                     </div>
                 </div>
+            </td>
+            <td class="optionTD" align="center">
+                Width<br />
+                <input type="text" id="MinWidth" placeholder="Minimun Width"/>
+                -
+                <input type="text" id="MaxWidth" placeholder="Maximum Width"/>
+
+            </td>
+            <td class="optionTD" align="center">
+                Yardage<br />
+                <input type="text" id="MinYardage" placeholder="Minimun Yardage"/>
+                -
+                <input type="text" id="MaxYardage" placeholder="Maximum Yardage"/>
+
             </td>
         </tr>
     </table>

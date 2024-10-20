@@ -12,8 +12,6 @@ from db_scripts.db_commands import DB_Worker
 from db_scripts.db_commands import db_exception
 db_worker = DB_Worker()
 all_fabric_data = db_worker.get_all_data()
-import pprint
-pprint.pprint(all_fabric_data)
 
 app = Flask(__name__, template_folder='./templates', static_folder='./static')
 
@@ -79,9 +77,11 @@ def delete_data():
 @app.route('/get_specific_fabric')
 def get_specific_fabric():
     fabric_name = request.args.get('fabric')
+    print(fabric_name)
     for fabric in all_fabric_data:
         if fabric_name == fabric['fabric_name']:
             return fabric
+    print('Fabric not found')
     return {'error_msg': 'Fabric not found'}
 
 @app.route('/delete_fabric', methods=['POST'])
@@ -142,5 +142,5 @@ def submit_collection():
     return {'result': True, 'debug_msg': debug_msg}
 
 if __name__=='__main__':
-    webbrowser.open('http://127.0.0.1:5000')
+    webbrowser.open('http://127.0.0.1:5000/view_inventory')
     app.run(host='0.0.0.0', port=5000)

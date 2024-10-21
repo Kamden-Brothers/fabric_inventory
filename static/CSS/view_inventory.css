@@ -50,6 +50,7 @@ table {
     width: 100%;
     text-align: center;
     margin: 0 auto; /* Center the div */
+    text-decoration: underline;
 }
 
 .FabricItemContainer {
@@ -80,4 +81,8 @@ table {
 
 .Rotate {
     transform: rotate(180deg) scaleX(-1);
+}
+
+.ToFabric {
+    cursor: pointer;
 }

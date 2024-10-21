@@ -14,27 +14,18 @@ dropdown_data['tag'] = [];
 dropdown_data['tag_new'] = [];
 dropdown_data['current_tags'] = []; // List of connected tags
 
+
 function uppercaseWords(text) {
     return text.replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
 // Get URL Parameters
-var urlParams = {};
-function updateURL() {
-    (window.onpopstate = function () {
-        var match,
-            pl = /_/g,  // Regex for replacing addition symbol with a space
-            search = /([^&=]+)=?([^&]*)/g,
-            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
-            query = window.location.search.substring(1);
-
-        urlParams = {};
-        while (match = search.exec(query)) {
-            urlParams[decode(match[1])] = decode(match[2]);
-        }
-    })();
+var sessionArgs = {};
+function setArgs() {
+    sessionArgs['fabric'] = sessionStorage.getItem('SelectedFabric')
+    sessionArgs['ext'] = sessionStorage.getItem('SelectedExt')
 }
-updateURL();
+setArgs();
 
 function removeOption(text, list) {
     index = list.findIndex((element) => {
@@ -218,6 +209,9 @@ function deleteOption() {
         success: function (data) {
             if (data.result) {
                 removeFromDropdown(persistent_list_name, text)
+                sessionArgs.clear();
+                
+                update_all_fabric();
             }
             else {
                 alert(`Error removing {text} from ${persistent_list_name}. ${data.error_msg}`)
@@ -255,21 +249,23 @@ const update_fabric = document.getElementById('update_box');
 update_fabric.addEventListener('change', (event) => {
     let change_value = event.target.value;
     if (change_value == NOT_APPLICABLE) {
-        window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
-        updateURL();
+        console.log('clear')
+        sessionStorage.clear();
+        setArgs()
+        console.log(sessionStorage.getItem('ext'))
         updatePage();
         return
     }
-    $.getJSON(`/get_specific_fabric?fabric=${change_value}`, fabricData => {
+    $.getJSON(`/get_specific_fabric?fabric=${encodeURIComponent(change_value)}`, fabricData => {
         if (fabricData.error_msg) {
             alert('Failed to get fabric ' + change_value)
             return
         }
-        let newUrl = 'add_inventory?fabric=' + fabricData.fabric_name.replace(/ /g, "_") + "&ext=" + fabricData.image_type;
-        window.history.pushState({ path: newUrl }, '', newUrl);
 
+        sessionStorage.setItem('SelectedFabric', fabricData.fabric_name)
+        sessionStorage.setItem('SelectedExt', fabricData.image_type)
         // Update page to new arguments
-        updateURL();
+        setArgs();
         updatePage();
     });
 });
@@ -309,12 +305,12 @@ function get_radio(name) {
 }
 
 function deleteFabricWarning() {
-    if (!urlParams.fabric) {
+    if (!sessionArgs.fabric) {
         console.log("No Fabric Loaded")
         return
     }
     const removeMessage = document.getElementById('DeleteFabricMessage')
-    removeMessage.innerHTML = `Remove Fabric <u>${urlParams.fabric}</u>?`
+    removeMessage.innerHTML = `Remove Fabric <u>${sessionArgs.fabric}</u>?`
 
     $('#deleteModal').modal('show');
 
@@ -324,7 +320,7 @@ function deleteFabric() {
 
     // Prepare FormData for the AJAX request
     const formData = new FormData();
-    formData.append('name', urlParams.fabric);
+    formData.append('name', sessionArgs.fabric);
 
     $.ajax({
         type: "POST",
@@ -334,9 +330,11 @@ function deleteFabric() {
         data: formData,
         success: (response) => {
             if (response.result) {
-                window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
-                updateURL();
-                resetPage()
+                sessionStorage.clear();
+                setArgs();
+                resetPage();
+                update_all_fabric();
+
                 if (response.debug_msg) {
                     alert('Fabric Deleted\nDebug message: ' + response.debug_msg);
                 } else {
@@ -395,6 +393,8 @@ function submitData() {
         param.data['cut'] = get_radio('cut');
         param.data['style'] = get_radio('style');
 
+        param.data['real_name'] = document.getElementById('realName').checked
+
         const imageInput = document.getElementById('imageInput');
         const imageFile = imageInput.files[0]; // Get the selected file
         if (imageFile) {
@@ -403,12 +403,12 @@ function submitData() {
 
         param.data['old_fabric'] = '';
         param.data['old_ext'] = '';
-        if (urlParams) {
-            if (urlParams.fabric) {
-                param.data['old_fabric'] = urlParams.fabric;
+        if (sessionArgs) {
+            if (sessionArgs.fabric) {
+                param.data['old_fabric'] = sessionArgs.fabric;
             }
-            if (urlParams.ext) {
-                param.data['old_ext'] = urlParams.ext;
+            if (sessionArgs.ext) {
+                param.data['old_ext'] = sessionArgs.ext;
             }
         }
         checkCorrectData(param.data);
@@ -444,6 +444,13 @@ function submitData() {
         $('#updateFabricLabel').hide();
     }
 
+    if (localStorage.getItem('removeData')) {
+        $('#keepData').prop('checked', false);
+    }
+    else {
+        $('#keepData').prop('checked', true);
+    }
+
     $('#submitModal').modal('show');
     data_to_submit = param
 }
@@ -476,16 +483,22 @@ function submit() {
         data: formData,
         success: (response) => {
             if (response.result) {
-                window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
-                updateURL();
-                if (!$('#keepData').is(':checked')) {
+                sessionStorage.clear()
+                setArgs();
+
+                if ($('#keepData').is(':checked')) {
+                    localStorage.setItem('removeData', false)
+                }
+                else {
                     resetPage()
+                    localStorage.setItem('removeData', true)
                 }
                 if (response.debug_msg) {
                     alert('Fabric added\nDebug message: ' + response.debug_msg);
                 } else {
                     alert('Fabric Added');
                 }
+                update_all_fabric();
             } else {
                 alert(response.error_msg);
             }
@@ -551,6 +564,25 @@ function resetPage() {
     document.getElementById('cotton').checked = true; // Material
     document.getElementById('uncut').checked = true;  // Cut
     document.getElementById('no_style').checked = true; // Style
+
+    document.getElementById('realName').checked = false;
+}
+
+function update_all_fabric() {
+    $.getJSON('/all_fabric_names', fabric_names => {
+        const update_fabric_box = document.getElementById('update_box');
+        let new_text = null;
+        if (sessionArgs) {
+            if (sessionArgs.fabric) {
+                new_text = sessionArgs.fabric.replace(/_/g, ' ');
+            }
+        }
+        else {
+            new_text = NOT_APPLICABLE;
+        }
+
+        update_dropdown(fabric_names, update_fabric_box, new_text, true, 'update_box');
+    });
 }
 
 function updatePage() {
@@ -565,25 +597,16 @@ function updatePage() {
 
         resetPage();
 
-        $.getJSON('/all_fabric_names', fabric_names => {
-            const update_fabric_box = document.getElementById('update_box');
-            let new_text = null;
-            if (urlParams) {
-                if (urlParams.fabric) {
-                    new_text = urlParams.fabric.replace(/_/g, ' ');
-                }
-            }
-            update_dropdown(fabric_names, update_fabric_box, new_text, true, 'update_box');
-        });
+        update_all_fabric();
 
-        if (urlParams) {
-            if (urlParams.fabric) {
-                console.log(urlParams.fabric)
-                $.getJSON(`/get_specific_fabric?fabric=${urlParams.fabric}`, fabricData => {
+        if (sessionArgs) {
+            if (sessionArgs.fabric) {
+                console.log(sessionArgs.fabric)
+                $.getJSON(`/get_specific_fabric?fabric=${encodeURIComponent(sessionArgs.fabric)}`, fabricData => {
                     if (fabricData.error_msg) {
-                        document.getElementById("name_box").value = 'Failed to load: ' + urlParams.fabric;
-                        //window.history.pushState({ path: "add_inventory" }, '', "add_inventory");
-                        updateURL();
+                        document.getElementById("name_box").value = 'Failed to load: ' + sessionArgs.fabric;
+                        sessionStorage.clear()
+                        setArgs();
                         return;
                     }
                     // Set fabric name
@@ -592,6 +615,8 @@ function updatePage() {
                     console.log(fabricData)
                     // Set material
                     document.getElementById(fabricData.material.toLowerCase()).checked = true;
+
+                    document.getElementById('realName').checked = fabricData.real_name
 
                     document.getElementById("collection").value = fabricData.collection;
                     document.getElementById("designer").value = fabricData.designer;

@@ -64,6 +64,7 @@ IF OBJECT_ID('fabric_inventory.dbo.fabric') IS NULL
 	CREATE TABLE fabric_inventory.dbo.fabric (
 		fabric_id INT IDENTITY(1,1) PRIMARY KEY,
 		fabric_name VARCHAR(100) UNIQUE,
+		real_name BIT,
 		material_id INT FOREIGN KEY REFERENCES fabric_inventory.dbo.material(material_id),
 		designer_id INT FOREIGN KEY REFERENCES fabric_inventory.dbo.designer(designer_id),
 		fabric_line_id INT FOREIGN KEY REFERENCES fabric_inventory.dbo.fabric_line(fabric_line_id),

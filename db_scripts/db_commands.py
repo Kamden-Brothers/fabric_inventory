@@ -67,19 +67,6 @@ def _get_id(cursor, return_val, table, column, search_data, raise_ex=True, ignor
         return []
     return fetch_val[0]
 
-def _get_fabric_id(cursor, fabric_name, raise_ex=True):
-    '''
-    '''
-    
-    query_str = f"""SELECT fabric_id FROM fabric_inventory.dbo.fabric WHERE dbo.CleanString(fabric_name) LIKE '%' + dbo.CleanString({fabric_name}) + '%'"""
-    cursor.execute(query_str, search_data)
-    fetch_val = (cursor.fetchone())
-
-    if not fetch_val:
-        if raise_ex:
-            raise db_exception(f'Could not find fabric {fabric_name}')
-        return []
-    return fetch_val[0]
 
 def _get_multiple(cursor, return_vals, table, column, search_data, raise_ex=True, ignore_none=True):
     '''
@@ -294,9 +281,11 @@ class DB_Worker:
 
                     _update_entry(cursor, fabric_id, 'fabric_id', 'fabric',
                                   ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id', 'year_on_selvage', 
-                                   'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type', 'collection_id'],
+                                   'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type',
+                                   'collection_id', 'real_name'],
                                   (data['name'], material_id, designer_id, fabric_line_id, data['selvage'], 
-                                   data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id))
+                                   data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'],
+                                   collection_id, data['real_name']))
 
                     self.update_linked_collection(cursor, fabric_id, 'tag', data)
                     self.update_linked_collection(cursor, fabric_id, 'color', data)
@@ -312,9 +301,9 @@ class DB_Worker:
                     # Insert new fabric entry
                     _add_entry(cursor, 'fabric',
                                ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id', 'year_on_selvage', 
-                                'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type', 'collection_id'],
+                                'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type', 'collection_id', 'real_name'],
                                (data['name'], material_id, designer_id, fabric_line_id, data['selvage'], 
-                                data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id))
+                                data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id, data['real_name']))
 
                     # Get the newly created fabric ID
                     fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (data['name'],), False)
@@ -349,7 +338,7 @@ class DB_Worker:
 
     def get_all_data(self):
         with self.cnxn.cursor() as cursor:
-            query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, year_on_selvage, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name
+            query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, year_on_selvage, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name
                            FROM fabric_inventory.dbo.fabric f
                            LEFT JOIN fabric_inventory.dbo.material m ON m.material_id = f.material_id
                            LEFT JOIN fabric_inventory.dbo.designer d ON d.designer_id = f.designer_id
@@ -379,6 +368,8 @@ class DB_Worker:
                 fabric['stack_id'] = fabric_data[11]
                 fabric['image_type'] = fabric_data[12]
                 fabric['collection'] = fabric_data[13]
+                fabric['real_name'] = fabric_data[14]
+                fabric['image_path'] = filename = secure_filename(fabric['fabric_name'] + fabric['image_type'])
 
                 all_fabrics.append(fabric)
 

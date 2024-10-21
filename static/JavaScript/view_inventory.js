@@ -57,27 +57,23 @@ class Fabric {
     constructor(data) {
         this.data = data;
 
-        let fabric_ref = 'add_inventory?fabric=' + data.fabric_name.replace(/ /g, "_") + "&ext=" + data.image_type;
-
-        // Create first table cell for the image
         const td_1 = $('<td>').addClass('FabricItemContainer');
 
-        const img_link = $('<a>').attr('href', fabric_ref);
+        const link = $('<div>')
+            .addClass('FabricHeading')
+            .addClass('ToFabric')
+            .attr('title', data.fabric_name)
+            .text(data.fabric_name);
+
+        td_1.append(link);
+
+        const img_link = $('<div>').addClass('ToFabric').attr('title', data.fabric_name);
         const img = $('<img>')
-            .attr('src', UPLOAD_FOLDER + data.fabric_name.replace(/ /g, "_").replace(/[^a-zA-Z0-9\s_-]/g, '') + data.image_type)
+            .attr('src', UPLOAD_FOLDER + data.image_path)
             .addClass('FabricImage');
 
         img_link.append(img);
         td_1.append(img_link);
-
-        // Create second table cell for the fabric name link
-        const link = $('<a>')
-            .addClass('FabricHeading')
-            .attr('href', fabric_ref)
-            .attr('title', data.fabric_name + ' Other')
-            .text(data.fabric_name);
-
-        td_1.append(link);
 
         // Create dictionary for Relevant Data
         const fabricDetails = [
@@ -139,6 +135,21 @@ function display_fabric(f_list) {
         }
         tr.append(fabric.htmlObject); // Append the fabric cell to the row
     });
+
+
+    const links = document.querySelectorAll('.ToFabric');
+    links.forEach(link => {
+        link.addEventListener('mouseup', function (event) {
+            if (event.button === 0) {
+                console.log(event)
+                console.log(link.title)
+                sessionStorage.setItem('SelectedFabric', link.title)
+                sessionStorage.setItem('SelectedExt', fabric_data.find(fabric => fabric.data.fabric_name == link.title).data.image_type)
+                
+                window.location.href = 'add_inventory'
+            }
+        })            
+    })
 }
 const SortFabric = $('#SortFabric');
 SortFabric.change(event => {

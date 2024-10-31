@@ -1,7 +1,13 @@
 const UPLOAD_FOLDER = './fabric_uploads/';
 
 let asc_desc_sort = 1;
-let currentFabric;
+let pageNum = 0;
+let displayNum = 16;
+let currentList = []
+
+function pageNumbers(list) {
+    return Math.ceil(list.length/displayNum)
+}
 
 function sortFabric(items, sort_attribute = "fabric_name") {
     console.log(`Sorting fabric by ${sort_attribute}`)
@@ -33,6 +39,13 @@ function filterFabric(items, key, values) {
     });
 }
 
+function filterSearch(items, searchText) {
+    console.log(searchText)
+    return items.filter(item => {
+        return item.data.fabric_name.toUpperCase().includes(searchText.toUpperCase())
+    })
+}
+
 function filterFabricRange(items, key, min_value, max_value) {
     console.log(`Filtering ${key}`)
     if (min_value) {
@@ -53,27 +66,40 @@ function filterFabricRange(items, key, min_value, max_value) {
     return items
 }
 
+function loadIMG(fabric) {
+    this.img_added = true
+
+    if (fabric.img_added) {
+        // Already loaded
+        return
+    }
+    fabric.img.attr('src', UPLOAD_FOLDER + fabric.data.image_path)
+}
+
 class Fabric {
     constructor(data) {
         this.data = data;
+        const td = $('<td>').addClass('fabric-item-container');
 
-        const td_1 = $('<td>').addClass('FabricItemContainer');
+        const div = $('<div>').addClass('table-width-div');
+        td.append(div);
 
         const link = $('<div>')
-            .addClass('FabricHeading')
-            .addClass('ToFabric')
+            .addClass('fabric-heading')
+            .addClass('to-fabric')
             .attr('title', data.fabric_name)
             .text(data.fabric_name);
 
-        td_1.append(link);
+        div.append(link);
 
-        const img_link = $('<div>').addClass('ToFabric').attr('title', data.fabric_name);
-        const img = $('<img>')
-            .attr('src', UPLOAD_FOLDER + data.image_path)
-            .addClass('FabricImage');
+        
+        const img_link = $('<div>').addClass('to-fabric');
+        this.img = $('<img>')
+            .attr('title', data.fabric_name)
+            .addClass('fabric-image');
 
-        img_link.append(img);
-        td_1.append(img_link);
+        img_link.append(this.img);
+        div.append(img_link);
 
         // Create dictionary for Relevant Data
         const fabricDetails = [
@@ -82,6 +108,27 @@ class Fabric {
             { heading: 'Width:', data: data.width },
             { heading: 'Yardage:', data: data.yardage },
         ];
+
+        fabricDetails.forEach(detail => {
+            const detailDiv = $('<div>'); // Wrap each detail in a div
+
+            const headerSpan = $('<span>').addClass('fabric-header').text(detail.heading);
+            const dataSpan = $('<span>').addClass('fabric-data').text(detail.data);
+
+            detailDiv.append(headerSpan);
+            detailDiv.append(dataSpan);
+
+            div.append(detailDiv); // Append the detail div to td_1
+        });
+
+        const sortDiv = $('<div>')
+        const sortHeader = $('<span>').addClass('fabric-header').text('Sort Option');
+        const sortData = $('<span>').addClass('fabric-data').text(data.fabric_name);
+
+        sortDiv.append(sortHeader);
+        sortDiv.append(sortData);
+
+        div.append(sortDiv); // Append the detail div to td_1
 
         const secondaryDetails = [
             { heading: 'Designer:', data: data.designer },
@@ -93,21 +140,27 @@ class Fabric {
             { heading: 'Tags:', data: data.tag.sort().join(', ') }
         ];
 
-        fabricDetails.forEach(detail => {
+        const secondary_detail_div = $('<div>').addClass('second-stats').attr('id', `secondDetails-${data.fabric_id}`);
+        div.append(secondary_detail_div)
+        secondaryDetails.forEach(detail => {
             const detailDiv = $('<div>'); // Wrap each detail in a div
 
-            const headerSpan = $('<span>').addClass('FabricHeader').text(detail.heading);
-            const dataSpan = $('<span>').addClass('FabricData').text(detail.data);
+            const headerSpan = $('<span>').addClass('fabric-header').text(detail.heading);
+            const dataSpan = $('<span>').addClass('fabric-data').text(detail.data);
 
             detailDiv.append(headerSpan);
             detailDiv.append(dataSpan);
 
-            td_1.append(detailDiv); // Append the detail div to td_1
+            secondary_detail_div.append(detailDiv); // Append the detail div to td_1
         });
 
-        this.htmlObject = td_1; // Store the complete table cell
+        const down_div = $('<div>').addClass('down_arrow').attr('title', 'See More').data('ConnectedData', secondary_detail_div);
+        div.append(down_div)
+
+        this.htmlObject = td; // Store the complete table cell
     }
 }
+
 
 let fabric_data = [];
 
@@ -118,61 +171,114 @@ $(document).ready(function () {
             fabric_data.push(new Fabric(data));
         });
         fabric_data = sortFabric(fabric_data)
-        currentFabric = fabric_data
-        display_fabric(currentFabric);
+        display_fabric(fabric_data);
     });
 });
 
-function display_fabric(f_list) {
+function display_fabric(displayList) {
+    // Update number of fabric found in search
+    $('#numberOfFabric').html(displayList.length)
+
+    currentList = displayList
+    display_list = displayList.filter(l => true).splice(pageNum * displayNum, displayNum)
     const fabric_table = $('#FabricTable');
     fabric_table.empty(); // Clear the table
-
+    
     let tr;
-    f_list.forEach((fabric, i) => {
+    display_list.forEach((fabric, i) => {
+        loadIMG(fabric)
         if (i % 4 === 0) {
             tr = $('<tr>'); // Create a new table row
             fabric_table.append(tr);
         }
         tr.append(fabric.htmlObject); // Append the fabric cell to the row
     });
+    let pageNumStr
+    if (displayList.length > 0) {
+        pageNumStr = `${pageNum + 1} of ${pageNumbers(displayList)}`
+    }
+    else {
+        pageNumStr = 'No Fabric Found'
+    }
+    $('#PageNumbersTop').html(pageNumStr)
+    $('#PageNumbersBottom').html(pageNumStr)
 
-
-    const links = document.querySelectorAll('.ToFabric');
+    const links = document.querySelectorAll('.to-fabric');
     links.forEach(link => {
         link.addEventListener('mouseup', function (event) {
             if (event.button === 0) {
-                console.log(event)
-                console.log(link.title)
                 sessionStorage.setItem('SelectedFabric', link.title)
                 sessionStorage.setItem('SelectedExt', fabric_data.find(fabric => fabric.data.fabric_name == link.title).data.image_type)
                 
                 window.location.href = 'add_inventory'
             }
-        })            
+        })
+    })
+
+    const down_arrow_div = document.querySelectorAll('.down_arrow');
+    down_arrow_div.forEach(option => {
+        option.onclick = function (evt) {
+            console.log(option)
+            const option_jq = $(option)
+            secondaryDetails = option_jq.data('ConnectedData')
+
+            if (secondaryDetails.hasClass('visible')) {
+                secondaryDetails.removeClass('visible')
+                option_jq.removeClass('flip-arrow')
+            }
+            else {
+                secondaryDetails.addClass('visible')
+                option_jq.addClass('flip-arrow')
+            }
+        }
     })
 }
 const SortFabric = $('#SortFabric');
 SortFabric.change(event => {
     const sortValue = event.target.value;
-    currentFabric = sortFabric(currentFabric, sortValue);
-    display_fabric(currentFabric);
+    sortedList = sortFabric(currentList, sortValue);
+    if (sortedList == currentList) {
+        return
+    }
+    pageNum = 0;
+    display_fabric(currentList);
 });
+
+function nextPage() {
+    if (pageNum + 1 === pageNumbers(currentList)) {
+        return
+    }
+    pageNum += 1;
+    display_fabric(currentList)
+    if (pageNum + 1 === pageNumbers(currentList)) {
+        return // Add logic to disable button. Also needs enbale logic in previous button. Should probably just create function to check button status
+    }
+}
+
+function prevPage() {
+    if (pageNum === 0) {
+        return
+    }
+    pageNum -= 1;
+    display_fabric(currentList)
+}
 
 // Change asc desc status
 function flip_sort() {
     const SortButton = $("#SortButton");
-    if (SortButton.hasClass("Rotate")) {
+    if (SortButton.hasClass("rotate")) {
         asc_desc_sort = 1;
-        SortButton.removeClass("Rotate");
+        SortButton.removeClass("rotate");
     } else {
         asc_desc_sort = -1;
-        SortButton.addClass("Rotate");
+        SortButton.addClass("rotate");
     }
-    currentFabric = currentFabric.reverse()
-    display_fabric(currentFabric);
+    currentList = currentList.reverse()
+    display_fabric(currentList);
 }
 
 function searchFabric() {
+    // TODO add checking for searching the same thing
     let searchOptions = {}
     searchOptions['material'] = []
     searchOptions['cut'] = []
@@ -184,11 +290,11 @@ function searchFabric() {
         });
     }
 
-    let currentFabric = fabric_data;
+    let filteredList = fabric_data;
     for (const key in searchOptions) {
         const values = searchOptions[key];
         if (values.length != 0) {
-            currentFabric = filterFabric(currentFabric, key, values);
+            filteredList = filterFabric(filteredList, key, values);
         }
     }
     
@@ -197,8 +303,21 @@ function searchFabric() {
     const MinYardage = $('#MinYardage').val();
     const MaxYardage = $('#MaxYardage').val();
 
-    currentFabric = filterFabricRange(currentFabric, 'width', +(MinWidth), +(MaxWidth));
-    currentFabric = filterFabricRange(currentFabric, 'yardage', +(MinYardage), +(MaxYardage));
+    filteredList = filterFabricRange(filteredList, 'width', +(MinWidth), +(MaxWidth));
+    filteredList = filterFabricRange(filteredList, 'yardage', +(MinYardage), +(MaxYardage));
 
-    display_fabric(currentFabric);
+    const searchVal = $('#SearchBar').val()
+    filteredList = filterSearch(filteredList, searchVal)
+
+    pageNum = 0;
+    display_fabric(filteredList);
 }
+
+// Event Listener
+
+SearchBar = document.getElementById('SearchBar')
+SearchBar.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+        searchFabric()
+    }
+})

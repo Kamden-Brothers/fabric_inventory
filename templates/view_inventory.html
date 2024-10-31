@@ -21,7 +21,7 @@
         </h1>
     </div>
 
-    <div class="searchDiv">
+    <div class="search_div">
         <input type="text" placeholder="Search Fabric" id="SearchBar">
         <button onclick="searchFabric()">Apply Settings</button>
 
@@ -43,15 +43,15 @@
                 <option value="tag">Tag?</option>
             </select>
 
-            <button id="SortButton" type="button" class="ArrowButton" onclick="flip_sort()">
+            <button id="SortButton" type="button" class="arrow-button" onclick="flip_sort()">
                 ↑
             </button>
         </span>
     </div>
-    <table class="optionTable">
+    <table class="option-table">
         <tr>
 
-            <td class="optionTD">
+            <td class="option-td">
                 <div id="materialOptions" class="dropdown-check-list" tabindex="100">
                     <span class="anchor">Select Material</span>
 
@@ -69,7 +69,7 @@
                     </div>
                 </div>
             </td>
-            <td class="optionTD">
+            <td class="option-td">
                 <div id="cutOptions" class="dropdown-check-list" tabindex="100">
                     <span class="anchor">Select Cut</span>
 
@@ -85,7 +85,7 @@
                     </div>
                 </div>
             </td>
-            <td class="optionTD">
+            <td class="option-td">
                 <div id="styleOptions" class="dropdown-check-list" tabindex="100">
                     <span class="anchor">Select Style</span>
 
@@ -113,91 +113,40 @@
                     </div>
                 </div>
             </td>
-            <td class="optionTD" align="center">
+            <td class="option-td" align="center">
                 Width<br />
-                <input type="text" id="MinWidth" placeholder="Minimun Width"/>
+                <input type="text" id="MinWidth" placeholder="Minimun Width" />
                 -
-                <input type="text" id="MaxWidth" placeholder="Maximum Width"/>
+                <input type="text" id="MaxWidth" placeholder="Maximum Width" />
 
             </td>
-            <td class="optionTD" align="center">
+            <td class="option-td" align="center">
                 Yardage<br />
-                <input type="text" id="MinYardage" placeholder="Minimun Yardage"/>
+                <input type="text" id="MinYardage" placeholder="Minimun Yardage" />
                 -
-                <input type="text" id="MaxYardage" placeholder="Maximum Yardage"/>
+                <input type="text" id="MaxYardage" placeholder="Maximum Yardage" />
 
             </td>
+
         </tr>
     </table>
-    <!--<table class="optionTable">
-        <tr>
-            <td>
-            </td>
-            <td class="optionTD">
-                <span class="CheckBoxes">
-                    <span class="optionTitle">
-                        Material
-                    </span>
-                    <br />
 
-                    <input type="checkbox" id="material_option_1" name="material" value="Cotton">
-                    <label for="material_option_1">Cotton</label><br>
-                    <input type="checkbox" id="material_option_2" name="material" value="Flannel">
-                    <label for="material_option_2">Flannel</label><br>
-                    <input type="checkbox" id="material_option_3" name="material" value="Fleece">
-                    <label for="material_option_3">Fleece</label><br>
-                    <input type="checkbox" id="material_option_4" name="material" value="Wool">
-                    <label for="material_option_4">Wool</label><br>
-                    <input type="checkbox" id="material_option_5" name="material" value="Canvas">
-                    <label for="material_option_5">Canvas</label><br>
-                </span>
-            </td>
+    <div class="top-nav">
+        <span>Fabric in search <span id="numberOfFabric">N/A</span></span>
+        <span class="page-buttons">
+            <button type="button" onclick="prevPage()">Prev</button>
+            <span id="PageNumbersTop">Page Failed To Load</span>
+            <button type="button" onclick="nextPage()">Next</button>
+        </span>
+    </div>
 
-            <td class="optionTD">
-                <span class="CheckBoxes">
-                    <span class="optionTitle">
-                        Cut
-                    </span>
-                    <br />
-
-                    <input type="checkbox" id="cut_option_1" name="cut_option" value="Uncut">
-                    <label for="cut_option_1">Uncut</label><br>
-                    <input type="checkbox" id="cut_option_2" name="cut_option" value="Partially">
-                    <label for="cut_option_2">Partially</label><br>
-                    <input type="checkbox" id="cut_option_3" name="cut_option" value="Scrappy">
-                    <label for="cut_option_3">Scrappy</label><br>
-                    <input type="checkbox" id="cut_option_4" name="cut_option" value="Multiple Pieces">
-                    <label for="cut_option_4">Multiple Pieces</label><br>
-                </span>
-            </td>
-
-
-            <td class="optionTD">
-                <span>
-                    Another
-                </span>
-
-                <input type="text" placeholder="Search.." id="SearchBar" onkeyup="search_cars()">
-                <button onclick="search_cars()">Search</button>
-
-                <span>
-                    <label for="SortVehicles">Sort By:</label>
-
-                    <select name="SortVehicles" id="SortVehicles">
-                        <option value="Year">Year</option>
-                        <option value="Miles">Miles</option>
-                        <option value="Price">Price</option>
-                    </select>
-
-                    <button id="SortButton" type="button" class="ArrowButton" onclick="flip_sort()">
-                        ↑
-                    </button>
-                </span>
-            </td>
-        </tr>
-    </table>-->
-
-    <table id="FabricTable"></table>
+    <table id="FabricTable" class="basic-table"></table>
+    
+    <div class="bottom-nav">
+        <button type="button" onclick="prevPage()">Prev</button>
+        <span id="PageNumbersBottom">Page Failed To Load</span>
+        <button type="button" onclick="nextPage()">Next</button>
+    </div>
 
     <script type="text/javascript" src="static\JavaScript\jquery.js"></script>
     <script type="text/javascript" src="static\JavaScript\view_inventory.js"></script>

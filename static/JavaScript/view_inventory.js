@@ -93,9 +93,8 @@ class Fabric {
         div.append(link);
 
         
-        const img_link = $('<div>').addClass('to-fabric');
+        const img_link = $('<div>').addClass('to-fabric').attr('title', data.fabric_name);
         this.img = $('<img>')
-            .attr('title', data.fabric_name)
             .addClass('fabric-image');
 
         img_link.append(this.img);
@@ -140,8 +139,8 @@ class Fabric {
             { heading: 'Tags:', data: data.tag.sort().join(', ') }
         ];
 
-        const secondary_detail_div = $('<div>').addClass('second-stats').attr('id', `secondDetails-${data.fabric_id}`);
-        div.append(secondary_detail_div)
+        this.secondary_detail_div = $('<div>').addClass('second-stats').attr('id', `secondDetails-${data.fabric_id}`);
+        div.append(this.secondary_detail_div)
         secondaryDetails.forEach(detail => {
             const detailDiv = $('<div>'); // Wrap each detail in a div
 
@@ -151,11 +150,12 @@ class Fabric {
             detailDiv.append(headerSpan);
             detailDiv.append(dataSpan);
 
-            secondary_detail_div.append(detailDiv); // Append the detail div to td_1
+            this.secondary_detail_div.append(detailDiv); // Append the detail div to td_1
         });
 
-        const down_div = $('<div>').addClass('down_arrow').attr('title', 'See More').data('ConnectedData', secondary_detail_div);
-        div.append(down_div)
+        
+        this.down_div = $('<div>').addClass('down_arrow').attr('title', 'See More').data('ConnectedData', self.secondary_detail_div);
+        div.append(this.down_div)
 
         this.htmlObject = td; // Store the complete table cell
     }
@@ -191,7 +191,9 @@ function display_fabric(displayList) {
             tr = $('<tr>'); // Create a new table row
             fabric_table.append(tr);
         }
+        console.log(fabric)
         tr.append(fabric.htmlObject); // Append the fabric cell to the row
+        fabric.down_div.data('ConnectedData', fabric.secondary_detail_div)
     });
     let pageNumStr
     if (displayList.length > 0) {
@@ -207,6 +209,7 @@ function display_fabric(displayList) {
     links.forEach(link => {
         link.addEventListener('mouseup', function (event) {
             if (event.button === 0) {
+                console.log(link)
                 sessionStorage.setItem('SelectedFabric', link.title)
                 sessionStorage.setItem('SelectedExt', fabric_data.find(fabric => fabric.data.fabric_name == link.title).data.image_type)
                 

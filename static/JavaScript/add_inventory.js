@@ -510,14 +510,16 @@ function submit() {
 }
 
 function update_single_dropdowns() {
-    ['collection', 'designer', 'fabricline'].forEach(list_name => {
+    const dropdown_names = ['collection', 'designer', 'fabricline']
+    dropdown_names.forEach(list_name => {
         const collection_dropdown = document.getElementById(list_name);
         update_dropdown(dropdown_data[list_name], collection_dropdown, null, true, list_name);
     });
 }
 
 function update_multi_dropdowns() {
-    ['tag', 'color'].forEach(list_name => {
+    const multitags = ['tag', 'color']
+    multitags.forEach(list_name => {
         const collection_dropdown = document.getElementById(list_name);
         update_dropdown(dropdown_data[list_name], collection_dropdown, null, false);
 
@@ -644,11 +646,11 @@ function updatePage() {
                     if (fabricData.cut) {
                         document.getElementById(fabricData.cut.toLowerCase().replace(/ /g, "_")).checked = true;
                     }
+                    dropdown_data['current_colors'] = fabricData.color;
+                    dropdown_data['current_tags'] = fabricData.tag;
                     update_multi_dropdowns();
 
                     setImage('fabric_uploads\\' + fabricData.fabric_name.replace(/ /g, "_").replace(/[^a-zA-Z0-9\s_-]/g, '') + fabricData.image_type);
-                    dropdown_data['current_colors'] = fabricData.color;
-                    dropdown_data['current_tags'] = fabricData.tag;
                 });
             }
         }

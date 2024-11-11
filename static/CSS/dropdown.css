@@ -79,3 +79,10 @@
     .second-stats.visible {
         display: block;
     }
+
+.sort-div {
+    display: none;
+}
+    .sort-div.visible {
+        display: block;
+    }

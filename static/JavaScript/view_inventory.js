@@ -3,9 +3,11 @@ const UPLOAD_FOLDER = './fabric_uploads/';
 let asc_desc_sort = 1;
 let pageNum = 0;
 let displayNum = 16;
-let currentList = []
+let currentList = [];
+let fabric_data = [];
 
 function pageNumbers(list) {
+    // Calculate the number of pages based on items in list and page size
     return Math.ceil(list.length/displayNum)
 }
 
@@ -14,16 +16,20 @@ function sortFabric(items, sort_attribute = "fabric_name") {
     return items.sort((a, b) => {
         let nameA, nameB;
         if (sort_attribute === "fabric_name") {
-            nameA = a.data.fabric_name.toUpperCase().replace('-', '');
-            nameB = b.data.fabric_name.toUpperCase().replace('-', '');
+            // Compare based on fabric name
+            nameA = a.data.fabric_name.toUpperCase();
+            nameB = b.data.fabric_name.toUpperCase();
         } else {
-            if (!a.data[sort_attribute]) {
+            if (a.data[sort_attribute] == null) {
+                // Move null attributes to the end
                 return 1;
             }
-            if (!b.data[sort_attribute]) {
+            if (b.data[sort_attribute] == null) {
+                // Move null attributes to the end
                 return -1;
             }
-                
+
+            // Select attribute and set to uppercase
             nameA = a.data[sort_attribute].toUpperCase();
             nameB = b.data[sort_attribute].toUpperCase();
         }
@@ -40,21 +46,23 @@ function filterFabric(items, key, values) {
 }
 
 function filterSearch(items, searchText) {
-    console.log(searchText)
+    // Filter based on fabric names containing searchText
     return items.filter(item => {
         return item.data.fabric_name.toUpperCase().includes(searchText.toUpperCase())
     })
 }
 
 function filterFabricRange(items, key, min_value, max_value) {
-    console.log(`Filtering ${key}`)
+    // Filter based on an upper and lower value (Used for yardage and width)
     if (min_value) {
+        console.log(`Filtering ${key}`)
         console.log(min_value)
         items = items.filter(item => {
             return +(item.data[key]) >= min_value
         })
     }
     if (max_value) {
+        console.log(`Filtering ${key}`)
         console.log(max_value)
         items = items.filter(item => {
             console.log((item.data[key]))
@@ -67,6 +75,7 @@ function filterFabricRange(items, key, min_value, max_value) {
 }
 
 function loadIMG(fabric) {
+    // Load image dynmaically
     this.img_added = true
 
     if (fabric.img_added) {
@@ -78,12 +87,17 @@ function loadIMG(fabric) {
 
 class Fabric {
     constructor(data) {
+        // Store data in class
         this.data = data;
+
+        // Top level item
         const td = $('<td>').addClass('fabric-item-container');
 
+        // Div used to set width of table and display fabric
         const div = $('<div>').addClass('table-width-div');
         td.append(div);
 
+        // Fabric heading
         const link = $('<div>')
             .addClass('fabric-heading')
             .addClass('to-fabric')
@@ -92,15 +106,14 @@ class Fabric {
 
         div.append(link);
 
-        
+        // Image element and link. src is added dynamically
         const img_link = $('<div>').addClass('to-fabric').attr('title', data.fabric_name);
-        this.img = $('<img>')
-            .addClass('fabric-image');
+        this.img = $('<img>').addClass('fabric-image');
 
         img_link.append(this.img);
         div.append(img_link);
 
-        // Create dictionary for Relevant Data
+        // Main data to be displayed
         const fabricDetails = [
             { heading: 'Material:', data: data.material },
             { heading: 'Cut:', data: data.cut },
@@ -108,6 +121,7 @@ class Fabric {
             { heading: 'Yardage:', data: data.yardage },
         ];
 
+        // Create spans for each element
         fabricDetails.forEach(detail => {
             const detailDiv = $('<div>'); // Wrap each detail in a div
 
@@ -120,15 +134,17 @@ class Fabric {
             div.append(detailDiv); // Append the detail div to td_1
         });
 
-        const sortDiv = $('<div>')
-        const sortHeader = $('<span>').addClass('fabric-header').text('Sort Option');
-        const sortData = $('<span>').addClass('fabric-data').text(data.fabric_name);
+        // Sort related display. Accessible by class
+        this.sortDiv = $('<div>').addClass('sort-div').addClass('visible')
+        this.sortHeader = $('<span>').addClass('fabric-header').text('Sort Option');
+        this.sortData = $('<span>').addClass('fabric-data').text(data.fabric_name);
 
-        sortDiv.append(sortHeader);
-        sortDiv.append(sortData);
+        this.sortDiv.append(this.sortHeader);
+        this.sortDiv.append(this.sortData);
 
-        div.append(sortDiv); // Append the detail div to td_1
+        div.append(this.sortDiv); // Append the detail div to td_1
 
+        // Secondary information. Used when expanding data
         const secondaryDetails = [
             { heading: 'Designer:', data: data.designer },
             { heading: 'Fabric Line:', data: data.fabric_line },
@@ -139,6 +155,7 @@ class Fabric {
             { heading: 'Tags:', data: data.tag.sort().join(', ') }
         ];
 
+        // Create display for secondary details and give class reference for diplaying and hiding
         this.secondary_detail_div = $('<div>').addClass('second-stats').attr('id', `secondDetails-${data.fabric_id}`);
         div.append(this.secondary_detail_div)
         secondaryDetails.forEach(detail => {
@@ -153,37 +170,43 @@ class Fabric {
             this.secondary_detail_div.append(detailDiv); // Append the detail div to td_1
         });
 
-        
-        this.down_div = $('<div>').addClass('down_arrow').attr('title', 'See More').data('ConnectedData', self.secondary_detail_div);
+        // Down arrow looking for click event. Store self for updating
+        this.down_div = $('<div>').addClass('down_arrow').attr('title', 'See More');
         div.append(this.down_div)
 
-        this.htmlObject = td; // Store the complete table cell
+        // Store the complete table cell
+        this.htmlObject = td;
     }
 }
 
 
-let fabric_data = [];
-
 $(document).ready(function () {
     $.getJSON("/current_fabric_data", function (all_data) {
-        console.log(all_data);
+        // Load all fabric data and create Fabric classes for each item
         all_data.forEach(data => {
             fabric_data.push(new Fabric(data));
         });
+
+        // Sort fabric by name
         fabric_data = sortFabric(fabric_data)
+
+        // Display fabric
         display_fabric(fabric_data);
     });
 });
 
 function display_fabric(displayList) {
-    // Update number of fabric found in search
-    $('#numberOfFabric').html(displayList.length)
-
+    // Update list of current fabrics
     currentList = displayList
-    display_list = displayList.filter(l => true).splice(pageNum * displayNum, displayNum)
+
+    // Get current list of fabrics on page
+    display_list = displayList.slice(pageNum * displayNum, pageNum * displayNum + displayNum)
+
+    // Clear the table
     const fabric_table = $('#FabricTable');
-    fabric_table.empty(); // Clear the table
-    
+    fabric_table.empty();
+
+    // Display fabric in rows of 4
     let tr;
     display_list.forEach((fabric, i) => {
         loadIMG(fabric)
@@ -191,10 +214,16 @@ function display_fabric(displayList) {
             tr = $('<tr>'); // Create a new table row
             fabric_table.append(tr);
         }
-        console.log(fabric)
         tr.append(fabric.htmlObject); // Append the fabric cell to the row
-        fabric.down_div.data('ConnectedData', fabric.secondary_detail_div)
+
+        // Add fabric to drop down for reference when clicked
+        fabric.down_div.data('ConnectedData', fabric)
     });
+
+    // Update number of fabric found in search
+    $('#numberOfFabric').html(displayList.length)
+
+    // Update page numbers
     let pageNumStr
     if (displayList.length > 0) {
         pageNumStr = `${pageNum + 1} of ${pageNumbers(displayList)}`
@@ -205,11 +234,12 @@ function display_fabric(displayList) {
     $('#PageNumbersTop').html(pageNumStr)
     $('#PageNumbersBottom').html(pageNumStr)
 
+    // Add checks for to-fabric being clicked
     const links = document.querySelectorAll('.to-fabric');
     links.forEach(link => {
         link.addEventListener('mouseup', function (event) {
             if (event.button === 0) {
-                console.log(link)
+                // Store data in local storage
                 sessionStorage.setItem('SelectedFabric', link.title)
                 sessionStorage.setItem('SelectedExt', fabric_data.find(fabric => fabric.data.fabric_name == link.title).data.image_type)
                 
@@ -218,35 +248,55 @@ function display_fabric(displayList) {
         })
     })
 
+    // Add check for down arrow being clicked
     const down_arrow_div = document.querySelectorAll('.down_arrow');
     down_arrow_div.forEach(option => {
         option.onclick = function (evt) {
             console.log(option)
             const option_jq = $(option)
-            secondaryDetails = option_jq.data('ConnectedData')
+            fabric = option_jq.data('ConnectedData')
+            console.log(fabric)
+            secondaryDetails = fabric.secondary_detail_div
+            sortDiv = fabric.sortDiv
 
             if (secondaryDetails.hasClass('visible')) {
+                // Hide secondary details and show sort detail
                 secondaryDetails.removeClass('visible')
+                sortDiv.addClass('visible')
                 option_jq.removeClass('flip-arrow')
             }
             else {
+                // Show secondary details and hide sort detail
                 secondaryDetails.addClass('visible')
+                sortDiv.removeClass('visible')
                 option_jq.addClass('flip-arrow')
             }
         }
     })
 }
+
+
 const SortFabric = $('#SortFabric');
-SortFabric.change(event => {
-    const sortValue = event.target.value;
+function sort_fabric() {
+    // Sort fabric based on sort value
+    const sortValue = SortFabric.val()
+
+    currentList.forEach(fabric => {
+        fabric.sortHeader.html(sortValue.replace(/\b\w/g, letter => letter.toUpperCase()))
+        fabric.sortData.html(fabric.data[sortValue])
+    })
+
     sortedList = sortFabric(currentList, sortValue);
-    if (sortedList == currentList) {
-        return
-    }
     pageNum = 0;
     display_fabric(currentList);
+}
+
+// Change to sort value
+SortFabric.change(event => {
+    sort_fabric()
 });
 
+// Show next page
 function nextPage() {
     if (pageNum + 1 === pageNumbers(currentList)) {
         return
@@ -258,6 +308,7 @@ function nextPage() {
     }
 }
 
+// Show previous page
 function prevPage() {
     if (pageNum === 0) {
         return
@@ -276,8 +327,8 @@ function flip_sort() {
         asc_desc_sort = -1;
         SortButton.addClass("rotate");
     }
-    currentList = currentList.reverse()
-    display_fabric(currentList);
+    // Sort again instead of flipping because of null values
+    sort_fabric()
 }
 
 function searchFabric() {
@@ -293,31 +344,34 @@ function searchFabric() {
         });
     }
 
+    // Filter fabrics based on material, cut, and style
     let filteredList = fabric_data;
     for (const key in searchOptions) {
-        const values = searchOptions[key];
-        if (values.length != 0) {
-            filteredList = filterFabric(filteredList, key, values);
+        // Only filter if an option was selected
+        if (searchOptions[key].length != 0) {
+            filteredList = filterFabric(filteredList, key, searchOptions[key]);
         }
     }
-    
-    const MinWidth = $('#MinWidth').val();
-    const MaxWidth = $('#MaxWidth').val();
-    const MinYardage = $('#MinYardage').val();
-    const MaxYardage = $('#MaxYardage').val();
 
-    filteredList = filterFabricRange(filteredList, 'width', +(MinWidth), +(MaxWidth));
-    filteredList = filterFabricRange(filteredList, 'yardage', +(MinYardage), +(MaxYardage));
+    // get max
+    //const MinWidth = $('#MinWidth').val();
+    //const MaxWidth = $('#MaxWidth').val();
+    //const MinYardage = $('#MinYardage').val();
+    //const MaxYardage = $('#MaxYardage').val();
 
-    const searchVal = $('#SearchBar').val()
-    filteredList = filterSearch(filteredList, searchVal)
+    // Filter based on width. +() casts string to float
+    filteredList = filterFabricRange(filteredList, 'width', +($('#MinWidth').val()), +($('#MaxWidth').val()));
+    filteredList = filterFabricRange(filteredList, 'yardage', +($('#MinYardage').val()), +($('#MaxYardage').val()));
 
+    // Search based on search box
+    filteredList = filterSearch(filteredList, $('#SearchBar').val())
+
+    // Reset page number
     pageNum = 0;
     display_fabric(filteredList);
 }
 
-// Event Listener
-
+// Update when search box recieves enter
 SearchBar = document.getElementById('SearchBar')
 SearchBar.addEventListener('keydown', event => {
     if (event.key === 'Enter') {

@@ -53,9 +53,9 @@ function addToArray(text, list) {
 }
 
 function removeFromArray(text, list) {
-    const index = list.findIndex(item => item.toLowerCase() === text.toLowerCase()); // Find the index of the item
+    const index = list.findIndex(item => item.toLowerCase() === text.toLowerCase()); // Find the index of the item to remove
     if (index !== -1) {
-        list.splice(index, 1); // Remove the item at that index
+        list.splice(index, 1); // Remove the item at index
         return true;
     }
     return false;
@@ -563,11 +563,15 @@ function resetPage() {
     clearImage();
 
     // Set Radio buttons to first option
-    document.getElementById('cotton').checked = true; // Material
-    document.getElementById('uncut').checked = true;  // Cut
-    document.getElementById('no_style').checked = true; // Style
+    document.getElementById('cotton').checked = true; // Update Material
+    document.getElementById('uncut').checked = true;  // Update Cut
+    document.getElementById('no_style').checked = true; // Update Style
 
-    document.getElementById('realName').checked = false;
+    document.getElementById("collection").value = NOT_APPLICABLE;
+    document.getElementById("designer").value = NOT_APPLICABLE;
+    document.getElementById("fabricline").value = NOT_APPLICABLE;
+
+    //document.getElementById('realName').checked = false; // Leave real name the same
 }
 
 function update_all_fabric() {

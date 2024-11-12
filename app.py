@@ -2,6 +2,7 @@ import webbrowser
 import csv
 import os
 import re
+import socket
 
 import pandas as pd
 from flask import Flask, render_template, request, url_for, send_from_directory
@@ -140,6 +141,11 @@ def submit_collection():
         return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
 
     return {'result': True, 'debug_msg': debug_msg}
+
+@app.route('/ip_address')
+def get_ip_address():
+    print('Get ip')
+    return 'http//:' + socket.gethostbyname(socket.gethostname()) + ':5000'
 
 if __name__=='__main__':
     webbrowser.open('http://127.0.0.1:5000/view_inventory')

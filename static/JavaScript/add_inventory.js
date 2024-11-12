@@ -661,3 +661,7 @@ function updatePage() {
     });
 }
 updatePage();
+
+$.get('/ip_address', function (ipaddress) {
+    $('#IP-address').html(ipaddress)
+});

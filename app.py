@@ -3,6 +3,8 @@ import csv
 import os
 import re
 import socket
+import logging
+
 
 import pandas as pd
 from flask import Flask, render_template, request, url_for, send_from_directory
@@ -11,9 +13,13 @@ from werkzeug.utils import secure_filename
 
 from db_scripts.db_commands import DB_Worker
 from db_scripts.db_commands import db_exception
+
+# Create instance of database worker
 db_worker = DB_Worker()
 all_fabric_data = db_worker.get_all_data()
 
+# Set path for log
+logging.basicConfig(filename='record.log', level=logging.DEBUG)
 app = Flask(__name__, template_folder='./templates', static_folder='./static')
 
 @app.route('/')
@@ -105,6 +111,9 @@ def delete_fabric():
 
 @app.route('/submit_collection', methods=['POST'])
 def submit_collection():
+    '''
+    Submit a Fabric to the database.
+    '''
     data_dict = request.form.to_dict()
 
     data_dict = {
@@ -119,7 +128,6 @@ def submit_collection():
     else:
         return {'result': False, 'error_msg': 'Image name not acceptable'}
 
-
     import pprint
     pprint.pprint(data_dict)
     if data_dict['color'] is None:
@@ -127,24 +135,31 @@ def submit_collection():
     if data_dict['tag'] is None:
         data_dict['tag'] = []
     
+    app.logger.debug(f'Adding fabric to database {data_dict}')
     try:
         debug_msg = db_worker.add_fabric(data_dict, image_file)
 
         # Update data
         global all_fabric_data
+        
+        if debug_msg:
+            app.logger.warning(f'Saved fabric with error. {debug_msg=}')
+        else:
+            app.logger.debug(f'Saved fabric successfully')
         all_fabric_data = db_worker.get_all_data()
     except db_exception as e:
+        app.logger.error(f"Error Saving fabric: {e}")
         print(e)
         return {'result': False, 'error_msg': e.error_msg}
     except Exception as e:
         print(e)
+        app.logger.error(f"Code Error When Saving fabric: {e}")
         return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
 
     return {'result': True, 'debug_msg': debug_msg}
 
 @app.route('/ip_address')
 def get_ip_address():
-    print('Get ip')
     return 'http//:' + socket.gethostbyname(socket.gethostname()) + ':5000'
 
 if __name__=='__main__':

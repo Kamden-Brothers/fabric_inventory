@@ -1,15 +1,8 @@
 import webbrowser
-import csv
-import os
-import re
 import socket
 import logging
 
-
-import pandas as pd
-from flask import Flask, render_template, request, url_for, send_from_directory
-from werkzeug.utils import secure_filename
-
+from flask import Flask, render_template, request, send_from_directory
 
 from db_scripts.db_commands import DB_Worker
 from db_scripts.db_commands import db_exception

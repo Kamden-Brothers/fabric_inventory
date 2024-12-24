@@ -14,9 +14,8 @@ dropdown_data['tag'] = [];
 dropdown_data['tag_new'] = [];
 dropdown_data['current_tags'] = []; // List of connected tags
 
-
 function uppercaseWords(text) {
-    return text.replace(/\b\w/g, letter => letter.toUpperCase());
+    return text.replace(/(\s|^)\w/g, letter => letter.toUpperCase());
 }
 
 // Get URL Parameters

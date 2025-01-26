@@ -48,7 +48,7 @@ function filterFabric(items, key, values) {
 function filterSearch(items, searchText) {
     // Filter based on fabric names containing searchText
     return items.filter(item => {
-        return item.data.fabric_name.toUpperCase().includes(searchText.toUpperCase())
+        return item.data.searchKeyWords.toUpperCase().includes(searchText.toUpperCase())
     })
 }
 
@@ -89,6 +89,8 @@ class Fabric {
     constructor(data) {
         // Store data in class
         this.data = data;
+
+        this.data.searchKeyWords = `${data.fabric_name} ${data.collection} ${data.fabric_line} ${data.designer} ${data.fabric_id} ${data.tag.join(" ")} ${data.color.join(" ")}`.toUpperCase();
 
         // Top level item
         const td = $('<td>').addClass('fabric-item-container');
@@ -352,12 +354,6 @@ function searchFabric() {
             filteredList = filterFabric(filteredList, key, searchOptions[key]);
         }
     }
-
-    // get max
-    //const MinWidth = $('#MinWidth').val();
-    //const MaxWidth = $('#MaxWidth').val();
-    //const MinYardage = $('#MinYardage').val();
-    //const MaxYardage = $('#MaxYardage').val();
 
     // Filter based on width. +() casts string to float
     filteredList = filterFabricRange(filteredList, 'width', +($('#MinWidth').val()), +($('#MaxWidth').val()));

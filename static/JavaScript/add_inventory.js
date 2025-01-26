@@ -378,7 +378,7 @@ function submitData() {
         param.data['collection'] = check_no_data('collection');
         param.data['designer'] = check_no_data('designer');
         param.data['fabric_line'] = check_no_data('fabricline');
-        param.data['selvage'] = check_no_data('selvage');
+        param.data['selvage'] = '';
         param.data['width'] = check_no_data('width', true);
         param.data['yardage'] = check_no_data('yardage', true);
         param.data['rack'] = check_no_data('rack');
@@ -626,9 +626,6 @@ function updatePage() {
                     document.getElementById("collection").value = fabricData.collection;
                     document.getElementById("designer").value = fabricData.designer;
                     document.getElementById("fabricline").value = fabricData.fabric_line;
-
-                    // Set year on selvage
-                    document.getElementById("selvage").value = fabricData.year_on_selvage;
 
                     // Set rack and stack
                     document.getElementById("rack").value = fabricData.rack_id;

@@ -280,10 +280,10 @@ class DB_Worker:
                     fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (old_fabric,), False)
 
                     _update_entry(cursor, fabric_id, 'fabric_id', 'fabric',
-                                  ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id', 'year_on_selvage', 
+                                  ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id',
                                    'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type',
                                    'collection_id', 'real_name'],
-                                  (data['name'], material_id, designer_id, fabric_line_id, data['selvage'], 
+                                  (data['name'], material_id, designer_id, fabric_line_id,
                                    data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'],
                                    collection_id, data['real_name']))
 
@@ -300,9 +300,9 @@ class DB_Worker:
 
                     # Insert new fabric entry
                     _add_entry(cursor, 'fabric',
-                               ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id', 'year_on_selvage', 
+                               ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id', 
                                 'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type', 'collection_id', 'real_name'],
-                               (data['name'], material_id, designer_id, fabric_line_id, data['selvage'], 
+                               (data['name'], material_id, designer_id, fabric_line_id,
                                 data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id, data['real_name']))
 
                     # Get the newly created fabric ID
@@ -338,7 +338,7 @@ class DB_Worker:
 
     def get_all_data(self):
         with self.cnxn.cursor() as cursor:
-            query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, year_on_selvage, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name
+            query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name
                            FROM fabric_inventory.dbo.fabric f
                            LEFT JOIN fabric_inventory.dbo.material m ON m.material_id = f.material_id
                            LEFT JOIN fabric_inventory.dbo.designer d ON d.designer_id = f.designer_id
@@ -359,16 +359,15 @@ class DB_Worker:
                 fabric['material'] = fabric_data[2]
                 fabric['designer'] = fabric_data[3]
                 fabric['fabric_line'] = fabric_data[4]
-                fabric['year_on_selvage'] = fabric_data[5]
-                fabric['width'] = fabric_data[6]
-                fabric['yardage'] = fabric_data[7]
-                fabric['cut'] = fabric_data[8]
-                fabric['style'] = fabric_data[9]
-                fabric['rack_id'] = fabric_data[10]
-                fabric['stack_id'] = fabric_data[11]
-                fabric['image_type'] = fabric_data[12]
-                fabric['collection'] = fabric_data[13]
-                fabric['real_name'] = fabric_data[14]
+                fabric['width'] = fabric_data[5]
+                fabric['yardage'] = fabric_data[6]
+                fabric['cut'] = fabric_data[7]
+                fabric['style'] = fabric_data[8]
+                fabric['rack_id'] = fabric_data[9]
+                fabric['stack_id'] = fabric_data[10]
+                fabric['image_type'] = fabric_data[11]
+                fabric['collection'] = fabric_data[12]
+                fabric['real_name'] = fabric_data[13]
                 fabric['image_path'] = filename = secure_filename(fabric['fabric_name'] + fabric['image_type'])
 
                 all_fabrics.append(fabric)

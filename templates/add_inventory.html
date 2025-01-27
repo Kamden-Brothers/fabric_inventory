@@ -118,29 +118,93 @@
                 </td>
             </tr>
         </table>
-        <button onclick="deleteFabricWarning()">Delete Fabric</button>
+        
+        <div>
+            <button onclick="submitData()">Submit</button>
+            <button onclick="deleteFabricWarning()">Delete</button>
+        </div>
 
     </div>
     <br />
 
     <div class="input_box_div">
-        <fieldset>
-            <legend>Material</legend>
-            <div class="RadioFont">
-                <input type="radio" id="cotton" name="material" value="Cotton">
-                <label for="cotton">Cotton</label><br />
-                <input type="radio" id="flannel" name="material" value="Flannel">
-                <label for="flannel">Flannel</label><br />
-                <input type="radio" id="fleece" name="material" value="Fleece">
-                <label for="fleece">Fleece</label><br />
-                <input type="radio" id="wool" name="material" value="Wool">
-                <label for="wool">Wool</label><br />
-                <input type="radio" id="canvas" name="material" value="Canvas">
-                <label for="canvas">Canvas</label>
-            </div>
-        </fieldset>
+        <div>
+            Image:
+            <span class="data_box" id="fabric_name_box">Fabric Name</span>
+            <span class="data_box" id="ext_box">.ext</span>
+        </div>
+        <span style="display:flex">
+            <span id="drop-area">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+                Click Here or Drop Image
+            </span>
+            <img id="image-preview" src="" alt="Image Preview" />
+        </span>
+
     </div>
     <br />
+
+    <div class="radio-flex-options input_box_div">
+        <div>
+            <div class="radio-input-section">
+                <div>Material</div>
+                <div class="RadioFont">
+                    <input type="radio" id="cotton" name="material" value="Cotton">
+                    <label for="cotton">Cotton</label><br />
+                    <input type="radio" id="flannel" name="material" value="Flannel">
+                    <label for="flannel">Flannel</label><br />
+                    <input type="radio" id="fleece" name="material" value="Fleece">
+                    <label for="fleece">Fleece</label><br />
+                    <input type="radio" id="wool" name="material" value="Wool">
+                    <label for="wool">Wool</label><br />
+                    <input type="radio" id="canvas" name="material" value="Canvas">
+                    <label for="canvas">Canvas</label>
+                </div>
+            </div>
+
+            <div class="radio-input-section">
+                <div>Cut</div>
+                <div class="RadioFont">
+                    <input type="radio" id="uncut" name="cut" value="Uncut">
+                    <label for="uncut">Uncut</label><br />
+                    <input type="radio" id="partially" name="cut" value="Partially">
+                    <label for="partially">Partially</label><br />
+                    <input type="radio" id="scrappy" name="cut" value="Scrappy">
+                    <label for="scrappy">Scrappy</label><br />
+                    <input type="radio" id="multiple_pieces" name="cut" value="Multiple Pieces">
+                    <label for="multiple_pieces">Multiple Pieces</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="radio-input-section">
+            <div>Style</div>
+            <div class="RadioFont">
+                <input type="radio" id="no_style" name="style" value="no_style">
+                <label for="no_style">No Style</label><br />
+                <input type="radio" id="flat_fold" name="style" value="Flat Fold">
+                <label for="flat_fold">Flat Fold</label><br />
+                <input type="radio" id="board_large" name="style" value="Board: Large">
+                <label for="board_large">Board: Large</label><br />
+                <input type="radio" id="board_small" name="style" value="Board: Small">
+                <label for="board_small">Board: Small</label><br />
+                <input type="radio" id="fat_quarter" name="style" value="Fat Quarter">
+                <label for="fat_quarter">Fat Quarter</label><br />
+                <input type="radio" id="apron" name="style" value="Apron">
+                <label for="apron">Apron</label><br />
+                <input type="radio" id="panel" name="style" value="Panel">
+                <label for="panel">Panel</label><br>
+                <input type="radio" id="kit" name="style" value="Kit">
+                <label for="kit">Kit</label><br />
+                <input type="radio" id="charm_pack" name="style" value="Charm Pack">
+                <label for="charm_pack">Charm Pack</label><br />
+                <input type="radio" id="bundle" name="style" value="Bundle">
+                <label for="bundle">Bundle</label>
+            </div>
+        </div>
+    </div>
+    <br />
+
 
     <div class="input_box_div">
         <label for="collection">Collection</label>
@@ -244,22 +308,6 @@
     <br />
 
     <div class="input_box_div">
-        <label for="width">Width</label>
-        <div>
-            <input type="text" placeholder="" id="width">
-        </div>
-    </div>
-    <br />
-
-    <div class="input_box_div">
-        <label for="yardage">Yardage</label>
-        <div>
-            <input type="text" placeholder="" id="yardage">
-        </div>
-    </div>
-    <br />
-
-    <div class="input_box_div">
         Tags
         <table class="drop_down_add_table">
             <tr>
@@ -288,88 +336,33 @@
     </div>
     <br />
 
-    <div class="input_box_div">
-        <fieldset>
-            <legend>Cut</legend>
-            <div class="RadioFont">
-                <input type="radio" id="uncut" name="cut" value="Uncut">
-                <label for="uncut">Uncut</label><br />
-                <input type="radio" id="partially" name="cut" value="Partially">
-                <label for="partially">Partially</label><br />
-                <input type="radio" id="scrappy" name="cut" value="Scrappy">
-                <label for="scrappy">Scrappy</label><br />
-                <input type="radio" id="multiple_pieces" name="cut" value="Multiple Pieces">
-                <label for="multiple_pieces">Multiple Pieces</label>
+    <div class="radio-flex-options input_box_div">
+        <div style="text-align:center">
+            <label for="width">Width</label>
+            <div>
+                <input type="number" style="width:60px" placeholder="" id="width">
             </div>
-        </fieldset>
-    </div>
-    <br />
-
-    <div class="input_box_div">
-        <fieldset>
-            <legend>Style</legend>
-            <div class="RadioFont">
-                <input type="radio" id="no_style" name="style" value="no_style">
-                <label for="no_style">No Style</label><br />
-                <input type="radio" id="flat_fold" name="style" value="Flat Fold">
-                <label for="flat_fold">Flat Fold</label><br />
-                <input type="radio" id="board_large" name="style" value="Board: Large">
-                <label for="board_large">Board: Large</label><br />
-                <input type="radio" id="board_small" name="style" value="Board: Small">
-                <label for="board_small">Board: Small</label><br />
-                <input type="radio" id="fat_quarter" name="style" value="Fat Quarter">
-                <label for="fat_quarter">Fat Quarter</label><br />
-                <input type="radio" id="apron" name="style" value="Apron">
-                <label for="apron">Apron</label><br />
-                <input type="radio" id="panel" name="style" value="Panel">
-                <label for="panel">Panel</label><br>
-                <input type="radio" id="kit" name="style" value="Kit">
-                <label for="kit">Kit</label><br />
-                <input type="radio" id="charm_pack" name="style" value="Charm Pack">
-                <label for="charm_pack">Charm Pack</label><br />
-                <input type="radio" id="bundle" name="style" value="Bundle">
-                <label for="bundle">Bundle</label>
-            </div>
-        </fieldset>
-    </div>
-    <br />
-
-    <div class="input_box_div">
-        <table class="input_table">
-            <tr>
-                <td style="width:50px">
-                    Rack
-                </td>
-                <td style="width:50px">
-                    Stack
-                </td>
-            </tr>
-            <tr>
-                <td style="width:50px">
-                    <input type="text" style="width:30px" placeholder="" id="rack">
-                </td>
-                <td style="width:50px">
-                    <input type="text" style="width:30px" placeholder="" id="stack">
-                </td>
-            </tr>
-        </table>
-    </div>
-    <br />
-
-    <div class="input_box_div">
-        <div>
-            Image:
-            <span class="data_box" id="fabric_name_box">Fabric Name</span>
-            <span class="data_box" id="ext_box">.ext</span>
         </div>
-        <span style="display:flex">
-            <span id="drop-area">
-                <input type="file" id="imageInput" accept="image/*" style="display: none;" />
-                Click Here or Drop Image
-            </span>
-            <img id="image-preview" src="" alt="Image Preview" />
-        </span>
 
+        <div style="text-align:center">
+            <label for="yardage">Yardage</label>
+            <div>
+                <input type="number" style="width:60px" placeholder="" id="yardage">
+            </div>
+        </div>
+
+        <div style="text-align:center">
+            <label for="rack">Rack</label>
+            <div>
+                <input type="number" style="width:60px" placeholder="" id="rack">
+            </div>
+        </div>
+        <div style="text-align:center">
+            <label for="stack">Stack</label>
+            <div>
+                <input type="number" style="width:60px" placeholder="" id="stack">
+            </div>
+        </div>
     </div>
     <br />
 

@@ -2,6 +2,16 @@
     font-family:Arial;
 }
 
+.radio-flex-options {
+    display: flex;
+    gap: 20px;
+}
+
+.radio-input-section {
+    border: solid;
+    padding: 10px;
+}
+
 .bottom_padding {
     padding: 0px 0px 10px 0px;
 }

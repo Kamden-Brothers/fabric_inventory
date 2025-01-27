@@ -382,12 +382,8 @@ SearchBar.addEventListener('keydown', event => {
 })
 
 function pageNumberEvent(changeVal) {
-    console.log(changeVal);
-
-    console.log(changeVal)
     // Array starts at 0
     pageNum = changeVal - 1;
-    console.log(pageNum)
     display_fabric(currentList)
 }
 

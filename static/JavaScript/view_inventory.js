@@ -396,7 +396,7 @@ function getPageValue(value) {
     if (value < 1) {
         return 1;
     }
-
+    return value;
 }
 
 currentPageBottom.change((event) => {

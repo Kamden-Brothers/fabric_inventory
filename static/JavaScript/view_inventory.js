@@ -6,6 +6,9 @@ let displayNum = 16;
 let currentList = [];
 let fabric_data = [];
 
+currentPageBottom = $('#currentPageBottom')
+currentPageTop = $('#currentPageTop')
+
 function pageNumbers(list) {
     // Calculate the number of pages based on items in list and page size
     return Math.ceil(list.length/displayNum)
@@ -228,7 +231,10 @@ function display_fabric(displayList) {
     // Update page numbers
     let pageNumStr
     if (displayList.length > 0) {
-        pageNumStr = `${pageNum + 1} of ${pageNumbers(displayList)}`
+
+        $('#currentPageBottom').val(pageNum + 1)
+        $('#currentPageTop').val(pageNum + 1)
+        pageNumStr = `of ${pageNumbers(displayList)}`
     }
     else {
         pageNumStr = 'No Fabric Found'
@@ -373,4 +379,38 @@ SearchBar.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
         searchFabric()
     }
+})
+
+function pageNumberEvent(changeVal) {
+    console.log(changeVal);
+
+    console.log(changeVal)
+    // Array starts at 0
+    pageNum = changeVal - 1;
+    console.log(pageNum)
+    display_fabric(currentList)
+}
+
+function getPageValue(value) {
+    pageNumbers(currentList)
+    const max_pages = pageNumbers(currentList);
+    if (value > max_pages) {
+        return max_pages;
+    }
+    if (value < 1) {
+        return 1;
+    }
+
+}
+
+currentPageBottom.change((event) => {
+    const value = getPageValue(event.target.value);
+    currentPageTop.val(value);
+    pageNumberEvent(value);
+})
+
+currentPageTop.change((event) => {
+    const value = getPageValue(event.target.value);
+    currentPageBottom.val(value);
+    pageNumberEvent(value);
 })

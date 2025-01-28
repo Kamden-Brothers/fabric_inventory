@@ -256,6 +256,10 @@ class DB_Worker:
         debug_list = []
         delete_image = False
 
+        ext = data['ext'].lower()
+        if (ext != '.jpeg' and ext != '.jpg' and ext != '.png'):
+            raise db_exception('Picture ext must be .jpeg, .jpg, or .png')
+
         with self.cnxn.cursor() as cursor:
             try:
                 # Retrieve IDs for connected tables

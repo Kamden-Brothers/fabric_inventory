@@ -387,6 +387,11 @@ function submitData() {
         param.data['tag'] = dropdown_data['current_tags'];
 
         param.data['ext'] = document.getElementById('ext_box').textContent;
+        const ext = param.data.ext.toLowerCase();
+        if (ext !== '.jpg' & ext !== '.jpeg' & ext !== '.png') {
+            console.log(ext)
+            throw new Error('Image must be of type jpg, jpeg, or png')
+        }
 
         param.data['material'] = get_radio('material');
         param.data['cut'] = get_radio('cut');
@@ -413,7 +418,6 @@ function submitData() {
         checkCorrectData(param.data);
     } catch (error) {
         alert(error.message);
-        throw error;
         return;
     }
 

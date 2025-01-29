@@ -20,31 +20,31 @@
     background: #9BCBEB;
 }
 
-.drop_down_add_table {
+.drop-down-add-table {
     background: #9BCBEB;
     border: solid;
     width: 500px;
     border-collapse: collapse;
 }
-.td_border {
+
+.td-border {
     background: #9BCBEB;
     border: solid;
     text-align: center;
 }
 
 .x_button {
-
     border: 1px solid;
     background-color: #f0f0f0;
     margin-right: 10px;
 }
 
-.input_box_div {
+.input-box-div {
     background: #9BCBEB;
     padding: 4px;
 }
 
-.input_header_div {
+.input-header-div {
     background: #9BCBEB;
     padding: 4px;
     display: flex;
@@ -52,11 +52,7 @@
     justify-content: space-between;
 }
 
-.text_box {
-    width: 50%;
-}
-
-.no_bullet_ul {
+.no-bullet-ul {
     list-style-type: none; /* Removes bullets */
     padding: 3px 0px 0px 0px; /* Removes default padding */
     margin: 0; /* Removes default margin */
@@ -89,4 +85,8 @@
 .data_box {
     border: 2px solid;
     padding: 0px 5px 0px 5px;
+}
+
+.rack-or-stack-box {
+
 }

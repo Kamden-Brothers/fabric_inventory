@@ -94,40 +94,39 @@
         </div>
     </div>
 
-    <div class="input_header_div">
-        <table class="drop_down_add_table">
+    <div class="input-header-div">
+        <table class="drop-down-add-table">
             <tr>
-                <td class="td_border">
+                <td class="td-border">
                     <label for="name_box">Fabric Name</label>
                 </td>
-                <td class="td_border">
+                <td class="td-border">
                     <label for="update_box">Select Fabric</label>
                 </td>
             </tr>
             <tr>
-                <td class="td_border">
+                <td class="td-border">
                     <div>
                         <input type="text" placeholder="" id="name_box">
                         <label for="realName" style="display:inline-block; padding-left:8px">Real</label>
                         <input type="checkbox" id="realName" name="realName" />
                     </div>
                 </td>
-                <td class="td_border">
+                <td class="td-border">
                     <select name="update_box" id="update_box" style="width:200px">
                     </select>
                 </td>
             </tr>
         </table>
-        
+
         <div>
             <button onclick="submitData()">Submit</button>
             <button onclick="deleteFabricWarning()">Delete</button>
         </div>
-
     </div>
     <br />
 
-    <div class="input_box_div">
+    <div class="input-box-div">
         <div>
             Image:
             <span class="data_box" id="fabric_name_box">Fabric Name</span>
@@ -140,11 +139,27 @@
             </span>
             <img id="image-preview" src="" alt="Image Preview" />
         </span>
-
     </div>
     <br />
 
-    <div class="radio-flex-options input_box_div">
+    <div class="radio-flex-options input-box-div">
+        <div style="text-align:center">
+            <label for="width">Width</label>
+            <div>
+                <input type="number" style="width:100px" placeholder="" id="width">
+            </div>
+        </div>
+
+        <div style="text-align:center">
+            <label for="yardage">Yardage</label>
+            <div>
+                <input type="number" style="width:100px" placeholder="" id="yardage">
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="radio-flex-options input-box-div">
         <div>
             <div class="radio-input-section">
                 <div>Material</div>
@@ -206,23 +221,23 @@
     <br />
 
 
-    <div class="input_box_div">
+    <div class="input-box-div">
         <label for="collection">Collection</label>
-        <table class="drop_down_add_table">
+        <table class="drop-down-add-table">
             <tr>
-                <td class="td_border" colspan="1" rowspan="2" width="200px">
+                <td class="td-border" colspan="1" rowspan="2" width="200px">
                     <select name="collection" class="input-select" id="collection" style="width:200px">
                     </select>
                 </td>
-                <td class="td_border" colspan="2">
+                <td class="td-border" colspan="2">
                     <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove collection" id="collection_add_remove">
                 </td>
             </tr>
             <tr>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="add_data('collection')">Add Option</button>
                 </td>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="delete_data('collection')">Remove Option</button>
                 </td>
             </tr>
@@ -230,23 +245,23 @@
     </div>
     <br />
 
-    <div class="input_box_div">
+    <div class="input-box-div">
         <label for="designer">Designer</label>
-        <table class="drop_down_add_table">
+        <table class="drop-down-add-table">
             <tr>
-                <td class="td_border" colspan="1" rowspan="2" width="200px">
+                <td class="td-border" colspan="1" rowspan="2" width="200px">
                     <select name="designer" class="input-select" id="designer" style="width:200px">
                     </select>
                 </td>
-                <td class="td_border" colspan="2">
+                <td class="td-border" colspan="2">
                     <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove designer" id="designer_add_remove">
                 </td>
             </tr>
             <tr>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="add_data('designer')">Add Option</button>
                 </td>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="delete_data('designer')">Remove Option</button>
                 </td>
             </tr>
@@ -254,23 +269,23 @@
     </div>
     <br />
 
-    <div class="input_box_div">
+    <div class="input-box-div">
         <label for="fabricline">Fabric Line (made for)</label>
-        <table class="drop_down_add_table">
+        <table class="drop-down-add-table">
             <tr>
-                <td class="td_border" colspan="1" rowspan="2" width="200px">
+                <td class="td-border" colspan="1" rowspan="2" width="200px">
                     <select name="fabricline" class="input-select" id="fabricline" style="width:200px">
                     </select>
                 </td>
-                <td class="td_border" colspan="2">
+                <td class="td-border" colspan="2">
                     <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove fabric line" id="fabricline_add_remove">
                 </td>
             </tr>
             <tr>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="add_data('fabricline')">Add Option</button>
                 </td>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="delete_data('fabricline')">Remove Option</button>
                 </td>
             </tr>
@@ -278,79 +293,65 @@
     </div>
     <br />
 
-    <div class="input_box_div">
+    <div class="input-box-div">
         Colors
-        <table class="drop_down_add_table">
+        <table class="drop-down-add-table">
             <tr>
-                <td class="td_border" width="200px">
+                <td class="td-border" width="200px">
                     <select name="color" id="color" class="input-select" style="width:200px">
                     </select>
                 </td>
-                <td class="td_border" colspan="2">
+                <td class="td-border" colspan="2">
                     <input style="width:300px" class="input-text-box" type="text" placeholder="Add or remove color" id="color_add_remove">
                 </td>
             </tr>
             <tr>
-                <td class="td_border" width="200px">
+                <td class="td-border" width="200px">
                     <button onclick="add_list_item('color')">Add Tag</button>
                 </td>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="add_data('color')">Add Option</button>
                 </td>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="delete_data('color')">Remove Option</button>
                 </td>
             </tr>
         </table>
-        <ul id="color_list" class="no_bullet_ul">
+        <ul id="color_list" class="no-bullet-ul">
         </ul>
     </div>
     <br />
 
-    <div class="input_box_div">
+    <div class="input-box-div">
         Tags
-        <table class="drop_down_add_table">
+        <table class="drop-down-add-table">
             <tr>
-                <td class="td_border" width="200px">
+                <td class="td-border" width="200px">
                     <select name="tag" id="tag" class="input-select" style="width:200px">
                     </select>
                 </td>
-                <td class="td_border" colspan="2">
+                <td class="td-border" colspan="2">
                     <input style="width:300px" class="input-text-box" type="text" placeholder="Add or remove tag" id="tag_add_remove">
                 </td>
             </tr>
             <tr>
-                <td class="td_border" width="200px">
+                <td class="td-border" width="200px">
                     <button onclick="add_list_item('tag')">Add Tag</button>
                 </td>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="add_data('tag')">Add Option</button>
                 </td>
-                <td class="td_border" colspan="1">
+                <td class="td-border" colspan="1">
                     <button onclick="delete_data('tag')">Remove Option</button>
                 </td>
             </tr>
         </table>
-        <ul id="tag_list" class="no_bullet_ul">
+        <ul id="tag_list" class="no-bullet-ul">
         </ul>
     </div>
     <br />
 
-    <div class="radio-flex-options input_box_div">
-        <div style="text-align:center">
-            <label for="width">Width</label>
-            <div>
-                <input type="number" style="width:60px" placeholder="" id="width">
-            </div>
-        </div>
-
-        <div style="text-align:center">
-            <label for="yardage">Yardage</label>
-            <div>
-                <input type="number" style="width:60px" placeholder="" id="yardage">
-            </div>
-        </div>
-
+    <div class="radio-flex-options input-box-div">
         <div style="text-align:center">
             <label for="rack">Rack</label>
             <div>
@@ -366,7 +367,7 @@
     </div>
     <br />
 
-    <div class="input_box_div">
+    <div class="input-box-div">
         <button onclick="submitData()">Submit</button>
     </div>
 

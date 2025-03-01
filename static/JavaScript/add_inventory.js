@@ -5,8 +5,8 @@ dropdown_data['collection'] = [];
 dropdown_data['collection_new'] = [];
 dropdown_data['designer'] = [];
 dropdown_data['designer_new'] = [];
-dropdown_data['fabricline'] = [];
-dropdown_data['fabricline_new'] = [];
+dropdown_data['fabric_line'] = [];
+dropdown_data['fabric_line_new'] = [];
 dropdown_data['current_colors'] = []; // List of connected colors
 dropdown_data['color'] = [];
 dropdown_data['color_new'] = [];
@@ -127,7 +127,7 @@ function add_data(list_name) {
     if (addToArray(text, dropdown_data[list_name])) {
         addToArray(text, dropdown_data[list_name + '_new'])
         update_dropdown(dropdown_data[list_name], collection_dropdown, text, add_na, list_name);
-        // text_box.value = "";
+
     } else if (text) {
         dropdown_data[list_name].forEach(item => {
             if (item.toLowerCase() == text.toLowerCase()) {
@@ -144,7 +144,6 @@ function removeFromDropdown(list_name, text) {
 
     if (removeFromArray(text, dropdown_data[list_name])) {
         update_dropdown(dropdown_data[list_name], collection_dropdown, null, add_na, list_name);
-        // text_box.value = "";
 
         if (dropdown_data[`current_${list_name}s`]) {
             delete_list_item(text, list_name);
@@ -199,7 +198,7 @@ function deleteOption() {
     const text = document.getElementById(persistent_list_name + "_add_remove").value;
 
     postData = { list_name: persistent_list_name, text_value: text }
-
+    console.log(postData)
     $.ajax({
         url: '/delete_data',
         type: 'POST',
@@ -377,7 +376,7 @@ function submitData() {
         param.data['name'] = uppercaseWords(check_no_data('name_box', true));
         param.data['collection'] = check_no_data('collection');
         param.data['designer'] = check_no_data('designer');
-        param.data['fabric_line'] = check_no_data('fabricline');
+        param.data['fabric_line'] = check_no_data('fabric_line');
         param.data['selvage'] = '';
         param.data['width'] = check_no_data('width', true);
         param.data['yardage'] = check_no_data('yardage', true);
@@ -513,7 +512,7 @@ function submit() {
 }
 
 function update_single_dropdowns() {
-    const dropdown_names = ['collection', 'designer', 'fabricline']
+    const dropdown_names = ['collection', 'designer', 'fabric_line']
     dropdown_names.forEach(list_name => {
         const collection_dropdown = document.getElementById(list_name);
         update_dropdown(dropdown_data[list_name], collection_dropdown, null, true, list_name);
@@ -572,7 +571,7 @@ function resetPage() {
 
     document.getElementById("collection").value = NOT_APPLICABLE;
     document.getElementById("designer").value = NOT_APPLICABLE;
-    document.getElementById("fabricline").value = NOT_APPLICABLE;
+    document.getElementById("fabric_line").value = NOT_APPLICABLE;
 
     //document.getElementById('realName').checked = false; // Leave real name the same
 }
@@ -601,7 +600,7 @@ function updatePage() {
         dropdown_data['collection'] = result['collection_name'];
         dropdown_data['color'] = result['color'];
         dropdown_data['designer'] = result['designer'];
-        dropdown_data['fabricline'] = result['fabric_line'];
+        dropdown_data['fabric_line'] = result['fabric_line'];
         update_single_dropdowns();
 
         resetPage();
@@ -629,7 +628,7 @@ function updatePage() {
 
                     document.getElementById("collection").value = fabricData.collection;
                     document.getElementById("designer").value = fabricData.designer;
-                    document.getElementById("fabricline").value = fabricData.fabric_line;
+                    document.getElementById("fabric_line").value = fabricData.fabric_line;
 
                     // Set rack and stack
                     document.getElementById("rack").value = fabricData.rack_id;

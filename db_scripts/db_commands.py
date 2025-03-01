@@ -1,16 +1,15 @@
 import os
-import csv
 
-import pyodbc
 from werkzeug.utils import secure_filename
-import pandas as pd
 
 from db_scripts import connect_to_db
 from db_scripts import track_images
 
 
 UPLOAD_FOLDER = './fabric_uploads'
+TEST_FOLDER = './tests/fabric_upload'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(TEST_FOLDER, exist_ok=True)
 
 
 class db_exception(Exception):
@@ -19,9 +18,9 @@ class db_exception(Exception):
         super().__init__(self.error_msg)
 
 
-def _delete_image(fabric_name, ext):
+def _delete_image(fabric_name, ext, upload_folder):
     filename = secure_filename(fabric_name + ext)
-    full_path = os.path.join(UPLOAD_FOLDER, filename)
+    full_path = os.path.join(upload_folder, filename)
     if os.path.exists(full_path):
         os.remove(full_path)
     else:
@@ -32,20 +31,20 @@ def _add_entry(cursor, table, column, data):
     value_str = ', '.join('?' for _ in column)
     column_str = ', '.join(column)
     
-    query_str = f'''INSERT INTO fabric_inventory.dbo.{table} ({column_str}) VALUES ({value_str})'''
+    query_str = f'''INSERT INTO dbo.{table} ({column_str}) VALUES ({value_str})'''
     cursor.execute(query_str, data)
 
 
 def _update_entry(cursor, search_id, search_column, table, column, data):
     set_str = ', '.join(f'{c}=?' for c in column)
 
-    query_str = f'''UPDATE fabric_inventory.dbo.{table} SET {set_str} WHERE {search_column} = {search_id}'''
+    query_str = f'''UPDATE dbo.{table} SET {set_str} WHERE {search_column} = {search_id}'''
     cursor.execute(query_str, data)
 
 
 def _delete_entry(cursor, table, column, data):
     where_str = ', '.join(f'{c}=?' for c in column)
-    query_str = f'''DELETE FROM fabric_inventory.dbo.{table} WHERE {where_str}'''
+    query_str = f'''DELETE FROM dbo.{table} WHERE {where_str}'''
     cursor.execute(query_str, data)
 
 
@@ -57,14 +56,14 @@ def _get_id(cursor, return_val, table, column, search_data, raise_ex=True, ignor
         return None
     
     set_str = ' AND '.join(f'{c}=?' for c in column)
-    query_str = f'''SELECT {return_val} FROM fabric_inventory.dbo.{table} WHERE {set_str}'''
+    query_str = f'''SELECT {return_val} FROM dbo.{table} WHERE {set_str}'''
 
     cursor.execute(query_str, search_data)
     fetch_val = (cursor.fetchone())
     if not fetch_val:
         if raise_ex:
             raise db_exception(f'Could not find {search_data=} in {table=} {column=}')
-        return []
+        return None
     return fetch_val[0]
 
 
@@ -78,7 +77,7 @@ def _get_multiple(cursor, return_vals, table, column, search_data, raise_ex=True
     return_str = ', '.join(return_vals)
 
     set_str = ' AND '.join(f'{c}=?' for c in column)
-    query_str = f'''SELECT {return_str} FROM fabric_inventory.dbo.{table} WHERE {set_str}'''
+    query_str = f'''SELECT {return_str} FROM dbo.{table} WHERE {set_str}'''
 
     cursor.execute(query_str, search_data)
     fetch_val = (cursor.fetchone())
@@ -97,7 +96,7 @@ def _get_ids(cursor, return_val, table, column, search_data, raise_ex=True, igno
         return None
     
     set_str = ', '.join(f'{c}=?' for c in column)
-    query_str = f'''SELECT {return_val} FROM fabric_inventory.dbo.{table} WHERE {set_str}'''
+    query_str = f'''SELECT {return_val} FROM dbo.{table} WHERE {set_str}'''
 
     cursor.execute(query_str, search_data)
     fetch_val = (cursor.fetchall())
@@ -116,8 +115,14 @@ def _add_or_get_id(cursor, return_val, table, column, search_data, ignore_none=T
     item_id = _get_id(cursor, return_val, table, column, search_data, False)
     if not item_id:
         _add_entry(cursor, table, column, search_data)
-        item_id = _get_id(cursor, return_val, table, column, search_data, False)
+        item_id = _get_id(cursor, return_val, table, column, search_data)
     return item_id
+
+
+def _check_column_exists(cursor, table, search_column):
+    query_str = """SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?"""
+    cursor.execute(query_str, (table, search_column))
+    return bool(cursor.fetchall())
 
 
 def check_table_name(name):
@@ -133,7 +138,7 @@ def check_table_name(name):
     if name == 'collection':
         name = 'collection_name'
 
-    if name in ['material', 'collection_name', 'designer', 'cut', 'style', 'fabric']:
+    if name in ['material', 'collection_name', 'designer', 'cut', 'style', 'fabric', 'fabric_line']:
         return name, id_name, True
     elif name in ['tag', 'color']:
         return name, id_name, False
@@ -141,19 +146,48 @@ def check_table_name(name):
 
 
 class DB_Worker:
-    def __init__(self):
+    def __init__(self, test=False):
         # Connect to database on initialization
-        self.cnxn = connect_to_db.connect_to_db()
+        self.test = test
+        self.cnxn = connect_to_db.connect_to_db(test=test)
+        if test:
+            self.upload_folder = TEST_FOLDER
+        else:
+            self.upload_folder = UPLOAD_FOLDER
+
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            print(f"An error occurred: {exc_val}")
+            self.cnxn.rollback()
+        # Always close the connection
+        self.cnxn.close()
+
+    def __del__(self):
+        if hasattr(self, 'cnxn') and self.cnxn:
+            try:
+                self.cnxn.close()
+            except:
+                pass
 
     def current_dropdown_data(self):
         with self.cnxn.cursor() as cursor:
             data_dict = {}
             for table_name in ['collection_name', 'color', 'tag', 'designer', 'fabric_line']:
-                query_str = f'''SELECT {table_name} FROM fabric_inventory.dbo.{table_name}'''
+                query_str = f'''SELECT {table_name} FROM dbo.{table_name}'''
                 cursor.execute(query_str)
                 data_dict[table_name] = [data[0] for data in (cursor.fetchall())]
 
             return data_dict
+
+    def number_of_fabric(self):
+        with self.cnxn.cursor() as cursor:
+            cursor.execute('select count(fabric_id) from fabric_inventory_test.dbo.fabric;')
+            fabrics = cursor.fetchall()[0][0]
+            print(fabrics)
+            return fabrics
 
     def delete_fabric(self, fabric_name):
         debug_list = []
@@ -165,7 +199,7 @@ class DB_Worker:
                 _delete_entry(cursor, 'tag_junction', ['fabric_id'], (fabric_id, ))
                 _delete_entry(cursor, 'fabric', ['fabric_id'], (fabric_id, ))
                 
-                msg = _delete_image(fabric_name, image_type)
+                msg = _delete_image(fabric_name, image_type, self.upload_folder)
                 if msg:
                     debug_list.append(msg)
 
@@ -193,8 +227,8 @@ class DB_Worker:
 
 
         query_str = f'''SELECT {table_name}.{table_name}_id, {table_name}.{table_name}
-                        FROM fabric_inventory.dbo.{table_name}_junction as junc
-                        LEFT JOIN fabric_inventory.dbo.{table_name} ON {table_name}.{table_name}_id = junc.{table_name}_id
+                        FROM dbo.{table_name}_junction as junc
+                        LEFT JOIN dbo.{table_name} ON {table_name}.{table_name}_id = junc.{table_name}_id
                         WHERE junc.fabric_id = ?'''
 
         cursor.execute(query_str, fabric_id)
@@ -250,6 +284,11 @@ class DB_Worker:
                 self.cnxn.rollback()
                 raise e
 
+    def select_fabric(self, fabric_name):
+        with self.cnxn.cursor() as cursor:
+            fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (fabric_name,), False)
+            return fabric_id
+
     def add_fabric(self, data, image_file):
         old_fabric = data['old_fabric']
         old_ext = data['old_ext']
@@ -277,19 +316,19 @@ class DB_Worker:
                 # Process colors and tags
                 color_ids = [_add_or_get_id(cursor, 'color_id', 'color', ['color'], (color,)) for color in data['color']]
                 tag_ids = [_add_or_get_id(cursor, 'tag_id', 'tag', ['tag'], (tag,)) for tag in data['tag']]
-
                 
                 if old_fabric:
                     # Update existing fabric
-                    fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (old_fabric,), False)
+                    fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (old_fabric,))
 
-                    _update_entry(cursor, fabric_id, 'fabric_id', 'fabric',
-                                  ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id',
+
+                    update_cols = ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id',
                                    'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type',
-                                   'collection_id', 'real_name'],
-                                  (data['name'], material_id, designer_id, fabric_line_id,
+                                   'collection_id', 'real_name']
+                    update_vals = (data['name'], material_id, designer_id, fabric_line_id,
                                    data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'],
-                                   collection_id, data['real_name']))
+                                   collection_id, data['real_name'])
+                    _update_entry(cursor, fabric_id, 'fabric_id', 'fabric', update_cols, update_vals)
 
                     self.update_linked_collection(cursor, fabric_id, 'tag', data)
                     self.update_linked_collection(cursor, fabric_id, 'color', data)
@@ -310,7 +349,7 @@ class DB_Worker:
                                 data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id, data['real_name']))
 
                     # Get the newly created fabric ID
-                    fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (data['name'],), False)
+                    fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (data['name'],))
 
                     # Connect colors and tags to the new fabric entry
                     for color_id in color_ids:
@@ -321,17 +360,18 @@ class DB_Worker:
                 # Save image
                 filename = data['name'] + data['ext']
                 filename = secure_filename(filename)
-                image_file.save(os.path.join(UPLOAD_FOLDER, filename))
+                image_file.save(os.path.join(self.upload_folder, filename))
 
                 if delete_image:
-                    msg = _delete_image(old_fabric, old_ext)
+                    msg = _delete_image(old_fabric, old_ext, self.upload_folder)
                     if msg:
                         debug_list.append(msg)
 
-                # Add image name to list of images that need backed up
-                error_msg = track_images.update_image_list(filename)
-                if error_msg:
-                    debug_list.append(error_msg)
+                if not self.test:
+                    # Add image name to list of images that need backed up
+                    error_msg = track_images.update_image_list(filename)
+                    if error_msg:
+                        debug_list.append(error_msg)
 
                 # Commit the transaction
                 self.cnxn.commit()
@@ -343,13 +383,13 @@ class DB_Worker:
     def get_all_data(self):
         with self.cnxn.cursor() as cursor:
             query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name
-                           FROM fabric_inventory.dbo.fabric f
-                           LEFT JOIN fabric_inventory.dbo.material m ON m.material_id = f.material_id
-                           LEFT JOIN fabric_inventory.dbo.designer d ON d.designer_id = f.designer_id
-                           LEFT JOIN fabric_inventory.dbo.collection_name cn ON cn.collection_id = f.collection_id
-                           LEFT JOIN fabric_inventory.dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
-                           LEFT JOIN fabric_inventory.dbo.cut c ON c.cut_id = f.cut_id
-                           LEFT JOIN fabric_inventory.dbo.style s ON s.style_id = f.style_id'''
+                           FROM dbo.fabric f
+                           LEFT JOIN dbo.material m ON m.material_id = f.material_id
+                           LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
+                           LEFT JOIN dbo.collection_name cn ON cn.collection_id = f.collection_id
+                           LEFT JOIN dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
+                           LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
+                           LEFT JOIN dbo.style s ON s.style_id = f.style_id'''
 
             cursor.execute(query_str)
             fetch_val = (cursor.fetchall())
@@ -377,16 +417,16 @@ class DB_Worker:
                 all_fabrics.append(fabric)
 
             for fabric in all_fabrics:
-                query_str = f'''SELECT color FROM fabric_inventory.dbo.color c
-                                JOIN fabric_inventory.dbo.color_junction cj ON cj.color_id = c.color_id
+                query_str = f'''SELECT color FROM dbo.color c
+                                JOIN dbo.color_junction cj ON cj.color_id = c.color_id
                                 WHERE cj.fabric_id = {fabric['fabric_id']}'''
                 cursor.execute(query_str)
                 fetch_val = (cursor.fetchall())
                 fabric['color'] = [c[0] for c in fetch_val]
                 
                 
-                query_str = f'''SELECT tag FROM fabric_inventory.dbo.tag t
-                                JOIN fabric_inventory.dbo.tag_junction tj ON tj.tag_id = t.tag_id
+                query_str = f'''SELECT tag FROM dbo.tag t
+                                JOIN dbo.tag_junction tj ON tj.tag_id = t.tag_id
                                 WHERE tj.fabric_id = {fabric['fabric_id']}'''
                                 
                 cursor.execute(query_str)
@@ -394,6 +434,15 @@ class DB_Worker:
                 fabric['tag'] = [c[0] for c in fetch_val]
                 
             return all_fabrics
+    
+
+    def testfunction(self):
+        with self.cnxn.cursor() as cursor:
+            try:
+                print(_check_column_exists(cursor, 'fabric', 'fabric_id'))
+            except:
+                self.cnxn.rollback()
+                raise
 
 if __name__ == '__main__':
     worker = DB_Worker()

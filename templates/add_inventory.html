@@ -148,6 +148,10 @@
             <div>
                 <input type="number" style="width:100px" placeholder="" id="width">
             </div>
+            <!--<select id="widthUnits">
+                <option value="inches">Inches</option>
+                <option value="millimeters">Millimeters</option>
+            </select>-->
         </div>
 
         <div style="text-align:center">
@@ -155,6 +159,12 @@
             <div>
                 <input type="number" style="width:100px" placeholder="" id="yardage">
             </div>
+            <!--<select id="yardageUnits">
+                <option value="yards">Yards</option>
+                <option value="millimeters">Millimeters</option>
+                <option value="panels">Panels</option>
+            </select>-->
+
         </div>
     </div>
     <br />
@@ -270,23 +280,23 @@
     <br />
 
     <div class="input-box-div">
-        <label for="fabricline">Fabric Line (made for)</label>
+        <label for="fabric_line">Fabric Line (made for)</label>
         <table class="drop-down-add-table">
             <tr>
                 <td class="td-border" colspan="1" rowspan="2" width="200px">
-                    <select name="fabricline" class="input-select" id="fabricline" style="width:200px">
+                    <select name="fabric_line" class="input-select" id="fabric_line" style="width:200px">
                     </select>
                 </td>
                 <td class="td-border" colspan="2">
-                    <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove fabric line" id="fabricline_add_remove">
+                    <input style="width:300px" type="text" class="input-text-box" placeholder="Add or remove fabric line" id="fabric_line_add_remove">
                 </td>
             </tr>
             <tr>
                 <td class="td-border" colspan="1">
-                    <button onclick="add_data('fabricline')">Add Option</button>
+                    <button onclick="add_data('fabric_line')">Add Option</button>
                 </td>
                 <td class="td-border" colspan="1">
-                    <button onclick="delete_data('fabricline')">Remove Option</button>
+                    <button onclick="delete_data('fabric_line')">Remove Option</button>
                 </td>
             </tr>
         </table>

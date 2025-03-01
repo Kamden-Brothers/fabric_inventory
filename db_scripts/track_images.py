@@ -14,7 +14,6 @@ def get_image_list():
     '''
     Get list of current image names in updated_images
     '''
-    updated_images = []
     if os.path.exists(change_list_path):
         with open(change_list_path, mode='r', newline='') as csvfile:
             csv_reader = csv.reader(csvfile)
@@ -46,7 +45,6 @@ def update_image_list(image_name):
                 
                 # Write the list as a single row
                 csv_writer.writerow(updated_images)
-        print(get_image_list())
     except Exception as e:
         print('Could not update list of images to backup:', e)
         return f'Could not update list of images to backup: {e}'

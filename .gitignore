@@ -8,6 +8,7 @@ fabric_uploads/
 credentials.json
 updated_images.csv
 backup/
+update_archive
 
 # User-specific files
 *.rsuser

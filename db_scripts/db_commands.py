@@ -7,9 +7,7 @@ from db_scripts import track_images
 
 
 UPLOAD_FOLDER = './fabric_uploads'
-TEST_FOLDER = './tests/fabric_upload'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(TEST_FOLDER, exist_ok=True)
 
 
 class db_exception(Exception):
@@ -146,14 +144,10 @@ def check_table_name(name):
 
 
 class DB_Worker:
-    def __init__(self, test=False):
+    def __init__(self):
         # Connect to database on initialization
-        self.test = test
-        self.cnxn = connect_to_db.connect_to_db(test=test)
-        if test:
-            self.upload_folder = TEST_FOLDER
-        else:
-            self.upload_folder = UPLOAD_FOLDER
+        self.cnxn = connect_to_db.connect_to_db()
+        self.upload_folder = UPLOAD_FOLDER
 
     def __enter__(self):
         return self
@@ -181,13 +175,6 @@ class DB_Worker:
                 data_dict[table_name] = [data[0] for data in (cursor.fetchall())]
 
             return data_dict
-
-    def number_of_fabric(self):
-        with self.cnxn.cursor() as cursor:
-            cursor.execute('select count(fabric_id) from fabric_inventory_test.dbo.fabric;')
-            fabrics = cursor.fetchall()[0][0]
-            print(fabrics)
-            return fabrics
 
     def delete_fabric(self, fabric_name):
         debug_list = []
@@ -367,11 +354,10 @@ class DB_Worker:
                     if msg:
                         debug_list.append(msg)
 
-                if not self.test:
-                    # Add image name to list of images that need backed up
-                    error_msg = track_images.update_image_list(filename)
-                    if error_msg:
-                        debug_list.append(error_msg)
+                # Add image name to list of images that need backed up
+                error_msg = track_images.update_image_list(filename)
+                if error_msg:
+                    debug_list.append(error_msg)
 
                 # Commit the transaction
                 self.cnxn.commit()
@@ -434,15 +420,7 @@ class DB_Worker:
                 fabric['tag'] = [c[0] for c in fetch_val]
                 
             return all_fabrics
-    
 
-    def testfunction(self):
-        with self.cnxn.cursor() as cursor:
-            try:
-                print(_check_column_exists(cursor, 'fabric', 'fabric_id'))
-            except:
-                self.cnxn.rollback()
-                raise
 
 if __name__ == '__main__':
     worker = DB_Worker()

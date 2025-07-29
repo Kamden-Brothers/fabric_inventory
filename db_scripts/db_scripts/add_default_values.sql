@@ -29,6 +29,7 @@ VALUES
 	('Panel'),
 	('Kit'),
 	('Charm Pack'),
-	('Bundle');
+	('Bundle'),
+	('Jelly Roll');
 
 SELECT * FROM fabric_inventory.dbo.style;

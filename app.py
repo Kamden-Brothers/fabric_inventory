@@ -4,12 +4,12 @@ import logging
 
 from flask import Flask, render_template, request, send_from_directory
 
-from db_scripts.db_commands import DB_Worker
-from db_scripts.db_commands import db_exception
-from tests import test_DB
+from db_scripts.db_commands import DB_Worker, db_exception
+from db_scripts.update_database import run_update_scripts
 
-# test_DB.run_tests()
-# exit()
+
+# Update Database with any new update scripts
+run_update_scripts()
 
 # Create instance of database worker
 db_worker = DB_Worker()

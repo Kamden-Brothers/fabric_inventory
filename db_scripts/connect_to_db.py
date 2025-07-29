@@ -2,16 +2,14 @@ import json
 
 import pyodbc
 
-def connect_to_db(autocommit=False, test=False):
+def connect_to_db(autocommit=False):
     try:
         with open('credentials.json', 'r') as file:
             data = json.load(file)
 
         server_name = data['server_name']
-        if test:
-            db = data['test_db']
-        else:
-            db = data['db']
+        db = data['db']
+
     except Exception as e:
         print('Error loading credentials')
         raise e

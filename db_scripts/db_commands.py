@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from werkzeug.utils import secure_filename
 
@@ -39,6 +40,12 @@ def _update_entry(cursor, search_id, search_column, table, column, data):
     query_str = f'''UPDATE dbo.{table} SET {set_str} WHERE {search_column} = {search_id}'''
     cursor.execute(query_str, data)
 
+def _update_entry_v2(cursor, table, column, data, search_str):
+    set_str = ', '.join(f'{c}=?' for c in column)
+
+    query_str = f'''UPDATE dbo.{table} SET {set_str} WHERE {search_str}'''
+    print(query_str)
+    cursor.execute(query_str, data)
 
 def _delete_entry(cursor, table, column, data):
     where_str = ', '.join(f'{c}=?' for c in column)
@@ -182,6 +189,7 @@ class DB_Worker:
             try:
                 fabric_id, image_type = _get_multiple(cursor, ['fabric_id', 'image_type'], 'fabric', ['fabric_name'], (fabric_name, ))
 
+                _delete_entry(cursor, 'checkout_fabric', ['fabric_id'], (fabric_id, ))
                 _delete_entry(cursor, 'color_junction', ['fabric_id'], (fabric_id, ))
                 _delete_entry(cursor, 'tag_junction', ['fabric_id'], (fabric_id, ))
                 _delete_entry(cursor, 'fabric', ['fabric_id'], (fabric_id, ))
@@ -275,6 +283,37 @@ class DB_Worker:
         with self.cnxn.cursor() as cursor:
             fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (fabric_name,), False)
             return fabric_id
+        
+    def checkout_fabrics(self, fabric_ids, name):
+        if (not fabric_ids or not name):
+            raise db_exception('name and fabrics cannot be blank')
+        
+        with self.cnxn.cursor() as cursor:
+            try:
+                for fabric_id in fabric_ids:
+                    if (not fabric_id):
+                        raise db_exception('Invalid fabric_id given')
+                    
+                    _add_entry(cursor, 'checkout_fabric', ['fabric_id', 'person', 'checked_out'], (fabric_id, name, 1))
+                self.cnxn.commit()
+            except Exception as e:
+                self.cnxn.rollback()
+                raise e
+
+    def check_in_fabric(self, fabric_id):
+        fabric_id = int(fabric_id)
+        if (not fabric_id or fabric_id == 0):
+            raise db_exception('Fabrics cannot be blank')
+        
+        with self.cnxn.cursor() as cursor:
+            try:
+                check_in_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                _update_entry_v2(cursor, 'checkout_fabric', ['checked_out', 'check_in_date'], (0, check_in_date), f'fabric_id = {fabric_id} AND checked_out = 1')
+                self.cnxn.commit()
+            except Exception as e:
+                self.cnxn.rollback()
+                raise e
+
 
     def add_fabric(self, data, image_file):
         old_fabric = data['old_fabric']
@@ -368,14 +407,19 @@ class DB_Worker:
 
     def get_all_data(self):
         with self.cnxn.cursor() as cursor:
-            query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name
+            query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name, cf.checked_out
                            FROM dbo.fabric f
                            LEFT JOIN dbo.material m ON m.material_id = f.material_id
                            LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
                            LEFT JOIN dbo.collection_name cn ON cn.collection_id = f.collection_id
                            LEFT JOIN dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
                            LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
-                           LEFT JOIN dbo.style s ON s.style_id = f.style_id'''
+                           LEFT JOIN dbo.style s ON s.style_id = f.style_id
+                           LEFT JOIN (
+                                SELECT fabric_id, MAX(CAST(checked_out AS INT)) AS checked_out
+                                FROM dbo.checkout_fabric
+                                GROUP BY fabric_id
+                            ) cf ON cf.fabric_id = f.fabric_id'''
 
             cursor.execute(query_str)
             fetch_val = (cursor.fetchall())
@@ -399,6 +443,7 @@ class DB_Worker:
                 fabric['collection'] = fabric_data[12]
                 fabric['real_name'] = fabric_data[13]
                 fabric['image_path'] = filename = secure_filename(fabric['fabric_name'] + fabric['image_type'])
+                fabric['checked_out'] = bool(fabric_data[14])
 
                 all_fabrics.append(fabric)
 

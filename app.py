@@ -14,8 +14,6 @@ run_update_scripts()
 # Create instance of database worker
 db_worker = DB_Worker()
 
-all_fabric_data = db_worker.get_all_data()
-
 # Set path for log
 logging.basicConfig(filename='record.log', level=logging.DEBUG)
 app = Flask(__name__, template_folder='./templates', static_folder='./static')
@@ -35,7 +33,7 @@ def view_inventroy():
 
 @app.route('/current_fabric_data')
 def current_fabric_data():
-    return all_fabric_data
+    return db_worker.get_all_data()
 
 @app.route('/current_data')
 def current_data():
@@ -43,7 +41,7 @@ def current_data():
 
 @app.route('/all_fabric_names')
 def all_fabric_names():
-    return [d['fabric_name'] for d in all_fabric_data]
+    return [d['fabric_name'] for d in db_worker.get_all_data()]
 
 @app.route('/connected_items', methods=['POST'])
 def connected_items():
@@ -72,8 +70,6 @@ def delete_data():
     try:
         db_worker.delete_column_value(list_name, text_value)
     
-        global all_fabric_data
-        all_fabric_data = db_worker.get_all_data()
         return {'result': True}
     except db_exception as e:
         app.logger.error(str(e))
@@ -86,7 +82,7 @@ def delete_data():
 def get_specific_fabric():
     fabric_name = request.args.get('fabric')
     print(fabric_name)
-    for fabric in all_fabric_data:
+    for fabric in db_worker.get_all_data():
         if fabric_name == fabric['fabric_name']:
             return fabric
     print('Fabric not found')
@@ -99,9 +95,6 @@ def delete_fabric():
         print(data_dict)
         debug_msg = db_worker.delete_fabric(data_dict['name'])
     
-        # Update data
-        global all_fabric_data
-        all_fabric_data = db_worker.get_all_data()
     except db_exception as e:
         app.logger.error(str(e))
         return {'result': False, 'error_msg': e.error_msg}
@@ -109,6 +102,38 @@ def delete_fabric():
         app.logger.error(str(e))
         return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
     return {'result': True, 'debug_msg': debug_msg}
+
+@app.route('/checkout_fabrics', methods=['POST'])
+def checkout_fabrics():
+    try:
+        data = request.get_json()
+        fabric_ids = data.get('fabricIds', [])
+        person = data.get('person')
+        db_worker.checkout_fabrics(fabric_ids, person)
+
+    except db_exception as e:
+        app.logger.error(str(e))
+        return {'result': False, 'error_msg': e.error_msg}
+    except Exception as e:
+        app.logger.error(str(e))
+        return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
+
+    return {'result': True, 'debug_msg': ''}
+
+@app.route('/check_in_fabric', methods=['POST'])
+def check_in_fabric():
+    try:
+        data = request.get_json()
+        db_worker.check_in_fabric(data.get('fabric_id'))
+
+    except db_exception as e:
+        app.logger.error(str(e))
+        return {'result': False, 'error_msg': e.error_msg}
+    except Exception as e:
+        app.logger.error(str(e))
+        return {'result': False, 'error_msg': 'Code Error: ' + str(e)}
+
+    return {'result': True, 'debug_msg': ''}
 
 @app.route('/submit_collection', methods=['POST'])
 def submit_collection():
@@ -139,15 +164,11 @@ def submit_collection():
     app.logger.debug(f'Adding fabric to database {data_dict}')
     try:
         debug_msg = db_worker.add_fabric(data_dict, image_file)
-
-        # Update data
-        global all_fabric_data
         
         if debug_msg:
             app.logger.warning(f'Saved fabric with error. {debug_msg=}')
         else:
             app.logger.debug(f'Saved fabric successfully')
-        all_fabric_data = db_worker.get_all_data()
     except db_exception as e:
         app.logger.error(f"Error Saving fabric: {e}")
         print(e)

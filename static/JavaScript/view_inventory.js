@@ -5,9 +5,135 @@ let pageNum = 0;
 let displayNum = 16;
 let currentList = [];
 let fabric_data = [];
+let fabric_data_dict = {};
 
 currentPageBottom = $('#currentPageBottom')
 currentPageTop = $('#currentPageTop')
+
+function closePopup() {
+    document.getElementById('checkout-popup').style.display = 'none';
+    $('body').css('overflow', 'auto')
+}
+
+document.getElementById('checkout-popup').addEventListener('click', function (event) {
+    if (event.target === this)
+    {
+        closePopup();
+    }
+});
+
+function createCheckInDiv(fabric_id, fabric_name) {
+    let checkoutDiv = $(`#checkout-div-${fabric_id}`).empty();
+    if (checkoutDiv.length === 0) {        
+        checkoutDiv = $('<div>').attr('id', `checkout-div-${fabric_id}`)
+    }
+
+    const checkinFabric = $('<button>').text('Check in').on('click', () => checkIn(fabric_id, fabric_name));
+    return checkoutDiv.append(checkinFabric);
+}
+
+function createCheckoutDiv(fabric_id) {
+    let checkoutDiv = $(`#checkout-div-${fabric_id}`).empty();
+    if (checkoutDiv.length === 0) {        
+        checkoutDiv = $('<div>').attr('id', `checkout-div-${fabric_id}`)
+    }
+
+    const label = $('<label>').attr('for', `checkout-fabic-${fabric_id}`).text('Checkout Fabric');
+    const checkoutCheckbox = $('<input>').attr('type', 'checkbox').attr('id', `checkout-fabic-${fabric_id}`);
+    return checkoutDiv.append(label.append(checkoutCheckbox));
+}
+
+function checkIn(fabric_id, fabric_name) {
+    if (!confirm(`Check in fabric ${fabric_name}`)) return
+    
+    postData = {
+        fabric_id: fabric_id
+    }
+    $.ajax({
+            url: '/check_in_fabric',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(postData),
+            success: function (data) {
+                if (data.result)
+                {
+                    createCheckoutDiv(fabric_id)
+                }
+                else {
+                    alert(data.error_msg)
+                }
+            },
+
+            error: function () {
+                alert('Failed to check in fabric')
+            }
+    });
+
+}
+
+function checkoutFabric() {
+    const fabricIds = $('input[type="checkbox"]:checked[id^="checkout-fabic-"]').map(function() {
+        return this.id.replace('checkout-fabic-', '');
+    }).get();
+
+    const person = $('#person-name').val();
+    if (!person) {
+        alert("Person's name cannot be blank");
+        return;
+    }
+    if (fabricIds.length === 0) {
+        alert('Fabric list cannot be empty')
+        return;
+    }
+
+    const postData = {
+        fabricIds: fabricIds,
+        person: person
+    }
+
+    $.ajax({
+            url: '/checkout_fabrics',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(postData),
+            success: function (data) {
+                if (data.result)
+                {
+                    fabricIds.forEach((fabric_id) => {
+                        createCheckInDiv(fabric_id, fabric_data_dict[fabric_id].fabric_name)
+                    })
+                }
+                else {
+                    alert(data.error_msg)
+                }
+            },
+
+            error: function () {
+                alert('Failed to checkout fabric')
+            }
+    });
+
+    closePopup();
+}
+
+function updateCheckoutStatus() {
+    const fabricIds = $('input[type="checkbox"]:checked[id^="checkout-fabic-"]').map(function() {
+        return this.id.replace('checkout-fabic-', '');
+    }).get();
+
+    if (fabricIds.length === 0) {
+        alert('No fabrics selected for checkout');
+        return;
+    }
+    $('#checkout-popup').show();
+    $('body').css('overflow', 'hidden')
+    const fabric_ul = $('#fabrics-for-checkout').empty();
+
+    fabricIds.forEach(fabric_id => {
+        const fabric_li = $('<li>').text(fabric_data_dict[fabric_id].fabric_name);
+        fabric_ul.append(fabric_li);
+    });
+}
 
 function pageNumbers(list) {
     // Calculate the number of pages based on items in list and page size
@@ -149,6 +275,14 @@ class Fabric {
 
         div.append(this.sortDiv); // Append the detail div to td_1
 
+        if (data.checked_out) {
+            div.append(createCheckInDiv(data.fabric_id, data.fabric_name))
+        }
+        else {
+            div.append(createCheckoutDiv(data.fabric_id))
+        }
+        
+
         // Secondary information. Used when expanding data
         const secondaryDetails = [
             { heading: 'Designer:', data: data.designer },
@@ -190,6 +324,7 @@ $(document).ready(function () {
         // Load all fabric data and create Fabric classes for each item
         all_data.forEach(data => {
             fabric_data.push(new Fabric(data));
+            fabric_data_dict[data.fabric_id] = data;
         });
 
         // Sort fabric by name

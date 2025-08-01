@@ -12,6 +12,24 @@
 </head>
 <body>
 
+    <div id="checkout-popup" class="popup" style="display:none">
+        <div class="popup-form">
+            <button class="close-button" onclick="closePopup()">&times;</button>
+            <div class="popup-body">                
+                <div class="input-div">
+                    <label for="person-name">Person Name:</label>
+                    <input type="text" id="person-name" name="person-name" />
+                </div>
+                
+                <button type="submit" onclick="checkoutFabric()">Submit</button>
+
+                <div id="checkout-list">
+                    <div>Fabrics</div>
+                    <ul id="fabrics-for-checkout"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="header">
         <h1>
@@ -45,6 +63,9 @@
 
             <button id="SortButton" type="button" class="arrow-button" onclick="flip_sort()">
                 ↑
+            </button>
+            <button onclick="updateCheckoutStatus()">
+                Check out
             </button>
         </span>
     </div>

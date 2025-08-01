@@ -1,3 +1,53 @@
+.popup {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    top:0;
+    left:0;
+    background-color: rgba(0, 0, 0, .5);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .popup-form {
+        position: relative;
+        width: 600px;
+        height: 500px;
+        background-color: white;
+        padding: 10px;
+
+        .close-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        .popup-body {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            height: 100%;
+
+            .input-div {
+                label {
+                    width: 110px;
+                    display: inline-block;
+                }
+
+                input {
+                    width: 200px;
+                }
+            }
+        }
+    }
+}
+
+#checkout-list {
+    overflow: auto;
+
+}
+
 .arrow-button {
     height: 19px;
 }
@@ -17,7 +67,6 @@
     border-collapse: collapse;
     display: block;
     padding: 5px 0px 5px 0px;
-    vertical-align: top;
 }
 
 .option-td {

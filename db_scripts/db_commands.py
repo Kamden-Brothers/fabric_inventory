@@ -350,10 +350,10 @@ class DB_Worker:
 
                     update_cols = ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id',
                                    'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type',
-                                   'collection_id', 'real_name']
+                                   'collection_id', 'real_name', 'quantity']
                     update_vals = (data['name'], material_id, designer_id, fabric_line_id,
                                    data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'],
-                                   collection_id, data['real_name'])
+                                   collection_id, data['real_name'], data['quantity'])
                     _update_entry(cursor, fabric_id, 'fabric_id', 'fabric', update_cols, update_vals)
 
                     self.update_linked_collection(cursor, fabric_id, 'tag', data)
@@ -370,9 +370,9 @@ class DB_Worker:
                     # Insert new fabric entry
                     _add_entry(cursor, 'fabric',
                                ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id', 
-                                'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type', 'collection_id', 'real_name'],
+                                'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type', 'collection_id', 'real_name', 'quantity'],
                                (data['name'], material_id, designer_id, fabric_line_id,
-                                data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id, data['real_name']))
+                                data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id, data['real_name'], 'quantity'))
 
                     # Get the newly created fabric ID
                     fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (data['name'],))
@@ -404,29 +404,39 @@ class DB_Worker:
                 self.cnxn.rollback()  # Roll back on error
                 raise e  # Re-raise the exception for handling further up
             return ', '.join(debug_list)
-
-    def get_all_data(self):
+        
+    def get_all_fabric_names(self):
         with self.cnxn.cursor() as cursor:
-            query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name, cf.checked_out
-                           FROM dbo.fabric f
-                           LEFT JOIN dbo.material m ON m.material_id = f.material_id
-                           LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
-                           LEFT JOIN dbo.collection_name cn ON cn.collection_id = f.collection_id
-                           LEFT JOIN dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
-                           LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
-                           LEFT JOIN dbo.style s ON s.style_id = f.style_id
-                           LEFT JOIN (
-                                SELECT fabric_id, MAX(CAST(checked_out AS INT)) AS checked_out
-                                FROM dbo.checkout_fabric
-                                GROUP BY fabric_id
-                            ) cf ON cf.fabric_id = f.fabric_id'''
-
+            query_str = '''SELECT f.fabric_id, fabric_name
+                           FROM dbo.fabric f'''
             cursor.execute(query_str)
-            fetch_val = (cursor.fetchall())
-            
-            all_fabrics = []
-            
-            for fabric_data in fetch_val:
+            fabric_data = (cursor.fetchall())
+            return [{'fabric_id': val[0], 'fabric_name': val[1]} for val in fabric_data]
+
+    def get_fabric_by_name(self, fabric_name):
+        with connect_to_db.connect_to_db() as cnxn:
+            with cnxn.cursor() as cursor:
+                query_str = '''
+                    SELECT f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name, cf.checked_out, quantity
+                    FROM dbo.fabric f
+                    LEFT JOIN dbo.material m ON m.material_id = f.material_id
+                    LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
+                    LEFT JOIN dbo.collection_name cn ON cn.collection_id = f.collection_id
+                    LEFT JOIN dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
+                    LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
+                    LEFT JOIN dbo.style s ON s.style_id = f.style_id
+                    LEFT JOIN (
+                        SELECT fabric_id, MAX(CAST(checked_out AS INT)) AS checked_out
+                        FROM dbo.checkout_fabric
+                        GROUP BY fabric_id
+                    ) cf ON cf.fabric_id = f.fabric_id
+                    WHERE fabric_name = ?
+                '''
+                cursor.execute(query_str, (fabric_name,))
+                fabric_data = cursor.fetchone()
+                if not fabric_data:
+                    return None
+
                 fabric = {}
                 fabric['fabric_id'] = fabric_data[0]
                 fabric['fabric_name'] = fabric_data[1]
@@ -442,28 +452,90 @@ class DB_Worker:
                 fabric['image_type'] = fabric_data[11]
                 fabric['collection'] = fabric_data[12]
                 fabric['real_name'] = fabric_data[13]
-                fabric['image_path'] = filename = secure_filename(fabric['fabric_name'] + fabric['image_type'])
+                fabric['image_path'] = secure_filename(fabric['fabric_name'] + fabric['image_type'])
                 fabric['checked_out'] = bool(fabric_data[14])
+                fabric['quantity'] = fabric_data[15] if fabric_data[15] else 1
 
-                all_fabrics.append(fabric)
+                # Get colors
+                query_colors = '''
+                    SELECT color FROM dbo.color c
+                    JOIN dbo.color_junction cj ON cj.color_id = c.color_id
+                    WHERE cj.fabric_id = ?
+                '''
+                cursor.execute(query_colors, (fabric['fabric_id'],))
+                fabric['color'] = [c[0] for c in cursor.fetchall()]
 
-            for fabric in all_fabrics:
-                query_str = f'''SELECT color FROM dbo.color c
-                                JOIN dbo.color_junction cj ON cj.color_id = c.color_id
-                                WHERE cj.fabric_id = {fabric['fabric_id']}'''
+                # Get tags
+                query_tags = '''
+                    SELECT tag FROM dbo.tag t
+                    JOIN dbo.tag_junction tj ON tj.tag_id = t.tag_id
+                    WHERE tj.fabric_id = ?
+                '''
+                cursor.execute(query_tags, (fabric['fabric_id'],))
+                fabric['tag'] = [t[0] for t in cursor.fetchall()]
+
+                return fabric
+
+    def get_all_data(self):
+        all_fabrics = []
+        with connect_to_db.connect_to_db() as cnxn:
+            with cnxn.cursor() as cursor:
+                query_str = '''SELECT f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, rack_id, stack_id, image_type, collection_name, real_name, cf.checked_out, quantity
+                            FROM dbo.fabric f
+                            LEFT JOIN dbo.material m ON m.material_id = f.material_id
+                            LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
+                            LEFT JOIN dbo.collection_name cn ON cn.collection_id = f.collection_id
+                            LEFT JOIN dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
+                            LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
+                            LEFT JOIN dbo.style s ON s.style_id = f.style_id
+                            LEFT JOIN (
+                                    SELECT fabric_id, MAX(CAST(checked_out AS INT)) AS checked_out
+                                    FROM dbo.checkout_fabric
+                                    GROUP BY fabric_id
+                                ) cf ON cf.fabric_id = f.fabric_id'''
+
                 cursor.execute(query_str)
                 fetch_val = (cursor.fetchall())
-                fabric['color'] = [c[0] for c in fetch_val]
                 
                 
-                query_str = f'''SELECT tag FROM dbo.tag t
-                                JOIN dbo.tag_junction tj ON tj.tag_id = t.tag_id
-                                WHERE tj.fabric_id = {fabric['fabric_id']}'''
-                                
-                cursor.execute(query_str)
-                fetch_val = (cursor.fetchall())
-                fabric['tag'] = [c[0] for c in fetch_val]
+                for fabric_data in fetch_val:
+                    fabric = {}
+                    fabric['fabric_id'] = fabric_data[0]
+                    fabric['fabric_name'] = fabric_data[1]
+                    fabric['material'] = fabric_data[2]
+                    fabric['designer'] = fabric_data[3]
+                    fabric['fabric_line'] = fabric_data[4]
+                    fabric['width'] = fabric_data[5]
+                    fabric['yardage'] = fabric_data[6]
+                    fabric['cut'] = fabric_data[7]
+                    fabric['style'] = fabric_data[8]
+                    fabric['rack_id'] = fabric_data[9]
+                    fabric['stack_id'] = fabric_data[10]
+                    fabric['image_type'] = fabric_data[11]
+                    fabric['collection'] = fabric_data[12]
+                    fabric['real_name'] = fabric_data[13]
+                    fabric['image_path'] = filename = secure_filename(fabric['fabric_name'] + fabric['image_type'])
+                    fabric['checked_out'] = bool(fabric_data[14])
+                    fabric['quantity'] = fabric_data[15] if fabric_data[15] else 1
+
+                    all_fabrics.append(fabric)
+
+                for fabric in all_fabrics:
+                    query_str = f'''SELECT color FROM dbo.color c
+                                    JOIN dbo.color_junction cj ON cj.color_id = c.color_id
+                                    WHERE cj.fabric_id = {fabric['fabric_id']}'''
+                    cursor.execute(query_str)
+                    fetch_val = (cursor.fetchall())
+                    fabric['color'] = [c[0] for c in fetch_val]
                 
+                    query_str = f'''SELECT tag FROM dbo.tag t
+                                    JOIN dbo.tag_junction tj ON tj.tag_id = t.tag_id
+                                    WHERE tj.fabric_id = {fabric['fabric_id']}'''
+                                    
+                    cursor.execute(query_str)
+                    fetch_val = (cursor.fetchall())
+                    fabric['tag'] = [c[0] for c in fetch_val]
+                    
             return all_fabrics
 
 

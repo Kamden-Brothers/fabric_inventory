@@ -41,7 +41,7 @@ def current_data():
 
 @app.route('/all_fabric_names')
 def all_fabric_names():
-    return [d['fabric_name'] for d in db_worker.get_all_data()]
+    return [d['fabric_name'] for d in db_worker.get_all_fabric_names()]
 
 @app.route('/connected_items', methods=['POST'])
 def connected_items():
@@ -81,10 +81,9 @@ def delete_data():
 @app.route('/get_specific_fabric')
 def get_specific_fabric():
     fabric_name = request.args.get('fabric')
-    print(fabric_name)
-    for fabric in db_worker.get_all_data():
-        if fabric_name == fabric['fabric_name']:
-            return fabric
+    fabric = db_worker.get_fabric_by_name(fabric_name)
+    if fabric_name:
+        return fabric
     print('Fabric not found')
     return {'error_msg': 'Fabric not found'}
 

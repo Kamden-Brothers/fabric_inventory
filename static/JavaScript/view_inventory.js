@@ -291,7 +291,8 @@ class Fabric {
             { heading: 'Stack:', data: data.stack_id },
             { heading: 'Style:', data: data.style },
             { heading: 'Colors:', data: data.color.sort().join(', ') },
-            { heading: 'Tags:', data: data.tag.sort().join(', ') }
+            { heading: 'Tags:', data: data.tag.sort().join(', ') },
+            { heading: 'Quantity', data: data.quantity}
         ];
 
         // Create display for secondary details and give class reference for diplaying and hiding

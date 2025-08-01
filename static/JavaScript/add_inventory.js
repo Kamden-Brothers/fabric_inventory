@@ -380,6 +380,7 @@ function submitData() {
         param.data['selvage'] = '';
         param.data['width'] = check_no_data('width', true);
         param.data['yardage'] = check_no_data('yardage', true);
+        param.data['quantity'] = check_no_data('quantity', true);
         param.data['rack'] = check_no_data('rack');
         param.data['stack'] = check_no_data('stack');
         param.data['color'] = dropdown_data['current_colors'];
@@ -553,6 +554,7 @@ function resetPage() {
     document.getElementById("stack").value = "";
     document.getElementById("width").value = "";
     document.getElementById("yardage").value = "";
+    document.getElementById("quantity").value = "1";
 
     // Remove all tags and colors
     dropdown_data['current_colors'] = [];
@@ -637,6 +639,7 @@ function updatePage() {
                     // Set width and yardage
                     document.getElementById("width").value = fabricData.width;
                     document.getElementById("yardage").value = fabricData.yardage;
+                    document.getElementById("quantity").value = fabricData.quantity;
 
                     document.getElementById("fabric_name_box").innerHTML = fabricData.fabric_name;
 

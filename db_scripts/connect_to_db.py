@@ -13,11 +13,20 @@ def connect_to_db(autocommit=False):
     except Exception as e:
         print('Error loading credentials')
         raise e
+    conn_str = (
+        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        f"SERVER={server_name};"
+        f"DATABASE={db};"
+        f"Trusted_Connection=yes;"
+        "MultipleActiveResultSets=True;"
+    )
 
-    return pyodbc.connect(
-            driver='{ODBC Driver 17 for SQL Server}',
-            server=f'{server_name}', 
-            database=f'{db}', 
-            trusted_connection='yes',
-            autocommit=autocommit
-        )
+    return pyodbc.connect(conn_str, autocommit=autocommit)
+    # return pyodbc.connect(
+    #         driver='{ODBC Driver 17 for SQL Server}',
+    #         server=f'{server_name}', 
+    #         database=f'{db}', 
+    #         trusted_connection='yes',
+    #         autocommit=autocommit,
+    #         MARS_Connection='Yes'
+    #     )

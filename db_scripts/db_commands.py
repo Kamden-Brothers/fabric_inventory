@@ -318,6 +318,7 @@ class DB_Worker:
     def add_fabric(self, data, image_file):
         old_fabric = data['old_fabric']
         old_ext = data['old_ext']
+        data['quantity'] = int(data['quantity'])
         debug_list = []
         delete_image = False
 
@@ -372,7 +373,7 @@ class DB_Worker:
                                ['fabric_name', 'material_id', 'designer_id', 'fabric_line_id', 
                                 'width', 'yardage', 'cut_id', 'style_id', 'rack_id', 'stack_id', 'image_type', 'collection_id', 'real_name', 'quantity'],
                                (data['name'], material_id, designer_id, fabric_line_id,
-                                data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id, data['real_name'], 'quantity'))
+                                data['width'], data['yardage'], cut_id, style_id, rack_id, stack_id, data['ext'], collection_id, data['real_name'], data['quantity']))
 
                     # Get the newly created fabric ID
                     fabric_id = _get_id(cursor, 'fabric_id', 'fabric', ['fabric_name'], (data['name'],))

@@ -5,6 +5,7 @@
 
 # Codes specific files
 fabric_uploads/
+fabric_thumbnails/
 credentials.json
 updated_images.csv
 backup/

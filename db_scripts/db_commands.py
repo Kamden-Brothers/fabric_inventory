@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 
 from db_scripts import connect_to_db
 from db_scripts import track_images
+from scripts.imageResize import createThumbnail
 
 
 UPLOAD_FOLDER = './fabric_uploads'
@@ -388,6 +389,11 @@ class DB_Worker:
                 filename = data['name'] + data['ext']
                 filename = secure_filename(filename)
                 image_file.save(os.path.join(self.upload_folder, filename))
+
+                try:
+                    createThumbnail(filename)
+                except Exception as e:
+                    debug_list.append('Failed to create thumbnail')
 
                 if delete_image:
                     msg = _delete_image(old_fabric, old_ext, self.upload_folder)

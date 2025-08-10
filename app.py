@@ -6,7 +6,10 @@ from flask import Flask, render_template, request, send_from_directory
 
 from db_scripts.db_commands import DB_Worker, db_exception
 from db_scripts.update_database import run_update_scripts
+from scripts.imageResize import createAllThumbnails
 
+# Create thumbnails for images without
+createAllThumbnails()
 
 # Update Database with any new update scripts
 run_update_scripts()
@@ -24,8 +27,12 @@ def add_inventory():
     return render_template("add_inventory.html")
 
 @app.route('/fabric_uploads/<path:filename>')
-def upload_file(filename):
+def get_picture(filename):
     return send_from_directory('fabric_uploads', filename)
+
+@app.route('/fabric_thumbnails/<path:filename>')
+def get_thumbnail(filename):
+    return send_from_directory('fabric_thumbnails', filename)
 
 @app.route('/view_inventory')
 def view_inventroy():

@@ -1,4 +1,4 @@
-const UPLOAD_FOLDER = './fabric_uploads/';
+const UPLOAD_FOLDER = './fabric_thumbnails/';
 
 let asc_desc_sort = 1;
 let pageNum = 0;

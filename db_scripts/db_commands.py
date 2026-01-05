@@ -544,6 +544,37 @@ class DB_Worker:
                     fabric['tag'] = [c[0] for c in fetch_val]
                     
             return all_fabrics
+    
+    def calculate_current_stats(self):
+        fabrics = self.get_all_data()
+        data = {'total': {'yardage' : 0, 'sqft' : 0}}
+
+        for fabric in fabrics:
+            yardage = fabric['yardage']
+            width = fabric['width']
+
+            lengthFeet = yardage / 3
+            widthFeet = width * 12
+
+            sqft = lengthFeet * widthFeet
+
+            data['total']['yardage'] += yardage
+            data['total']['sqft'] += sqft
+
+            style = fabric['style']
+            if style:
+                if style not in data.keys():
+                    data[style] = {'yardage' : 0, 'sqft' : 0}
+
+                data[style]['yardage'] += yardage
+                data[style]['sqft'] += sqft
+
+
+        for key in data.keys():
+            data[key]['yardage'] = int(data[key]['yardage'])
+            data[key]['sqft'] = int(data[key]['sqft'])
+
+        return data
 
 
 if __name__ == '__main__':

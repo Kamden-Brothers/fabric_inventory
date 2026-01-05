@@ -38,9 +38,20 @@ def get_thumbnail(filename):
 def view_inventroy():
     return render_template("view_inventory.html")
 
-@app.route('/current_fabric_data')
+@app.route('/stats')
+def stats():
+    return render_template("stats.html")
+
+@app.route('/current_fabric_data', methods=['POST'])
 def current_fabric_data():
     return db_worker.get_all_data()
+
+@app.route('/calculate_current_stats')
+def calculate_current_stats():
+    try:
+        return {'result': True, 'data': db_worker.calculate_current_stats()}
+    except Exception as e:
+        return {'result': False, 'error_msg': f'Failed to load statistics {e}'}
 
 @app.route('/current_data')
 def current_data():
@@ -69,7 +80,6 @@ def connected_items():
 
 @app.route('/delete_data', methods=['POST'])
 def delete_data():
-    print('delete_data')
     data = request.get_json()
     list_name = data.get('list_name')
     text_value = data.get('text_value')

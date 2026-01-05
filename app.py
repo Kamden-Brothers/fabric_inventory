@@ -42,7 +42,7 @@ def view_inventroy():
 def stats():
     return render_template("stats.html")
 
-@app.route('/current_fabric_data', methods=['POST'])
+@app.route('/current_fabric_data')
 def current_fabric_data():
     return db_worker.get_all_data()
 

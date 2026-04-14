@@ -46,6 +46,12 @@ def stats():
 def current_fabric_data():
     return db_worker.get_all_data()
 
+@app.route('/get_fabric_paged', methods=['POST'])
+def get_fabric_paged():
+    filterData = request.get_json()
+
+    return db_worker.get_paged_data(filterData, 0)
+
 @app.route('/calculate_current_stats')
 def calculate_current_stats():
     try:

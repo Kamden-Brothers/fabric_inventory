@@ -320,7 +320,20 @@ class Fabric {
 }
 
 
-$(document).ready(function () {
+function loadFabric(filterValues) {
+    console.log(filterValues)
+    $.ajax({
+        url: '/get_fabric_paged',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(filterValues),
+        success: function (data) {
+            console.log(data)
+        }
+    })
+}
+
+$(function () {
     $.getJSON("/current_fabric_data", function (all_data) {
         // Load all fabric data and create Fabric classes for each item
         all_data.forEach(data => {
@@ -334,6 +347,8 @@ $(document).ready(function () {
         // Display fabric
         display_fabric(fabric_data);
     });
+
+    loadFabric({})
 });
 
 function display_fabric(displayList) {
@@ -476,7 +491,6 @@ function flip_sort() {
 }
 
 function searchFabric() {
-    // TODO add checking for searching the same thing
     let searchOptions = {}
     searchOptions['material'] = []
     searchOptions['cut'] = []
@@ -496,6 +510,11 @@ function searchFabric() {
             filteredList = filterFabric(filteredList, key, searchOptions[key]);
         }
     }
+
+    searchOptions['width'] = {'min' : $('#MinWidth').val(), 'max': $('#MaxWidth').val()};
+    searchOptions['yardage'] = {'min' : $('#MinYardage').val(), 'max': $('#MaxYardage').val()};
+    searchOptions['searchBar'] = $('#SearchBar').val();
+    loadFabric(searchOptions)
 
     // Filter based on width. +() casts string to float
     filteredList = filterFabricRange(filteredList, 'width', +($('#MinWidth').val()), +($('#MaxWidth').val()));

@@ -50,7 +50,7 @@ def current_fabric_data():
 def get_fabric_paged():
     filterData = request.get_json()
 
-    return db_worker.get_paged_data(filterData, 0)
+    return db_worker.get_paged_data(filterData)
 
 @app.route('/calculate_current_stats')
 def calculate_current_stats():

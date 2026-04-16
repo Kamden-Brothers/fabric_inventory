@@ -491,8 +491,18 @@ class DB_Worker:
                             SELECT 
                                 f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, 
                                 rack_id, stack_id, image_type, collection_name, real_name, cf.checked_out, quantity,
-                                col.color,
-                                t.tag
+                                (
+                                    SELECT STRING_AGG(col.color, ',')
+                                    FROM dbo.color_junction cj
+                                    JOIN dbo.color col ON col.color_id = cj.color_id
+                                    WHERE cj.fabric_id = f.fabric_id
+                                ) AS colors,
+                                (
+                                    SELECT STRING_AGG(t.tag, ',')
+                                    FROM dbo.tag_junction tj
+                                    JOIN dbo.tag t ON t.tag_id = tj.tag_id
+                                    WHERE tj.fabric_id = f.fabric_id
+                                ) AS tags
                             FROM dbo.fabric f
                             LEFT JOIN dbo.material m ON m.material_id = f.material_id
                             LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
@@ -501,11 +511,6 @@ class DB_Worker:
                             LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
                             LEFT JOIN dbo.style s ON s.style_id = f.style_id
 
-                            LEFT JOIN dbo.color_junction cj ON cj.fabric_id = f.fabric_id
-                            LEFT JOIN dbo.color col ON col.color_id = cj.color_id
-
-                            LEFT JOIN dbo.tag_junction tj ON tj.fabric_id = f.fabric_id
-                            LEFT JOIN dbo.tag t ON t.tag_id = tj.tag_id
 
                             LEFT JOIN (
                                 SELECT fabric_id, MAX(CAST(checked_out AS INT)) AS checked_out
@@ -518,47 +523,236 @@ class DB_Worker:
                 cursor.execute(query_str)
                 fetch_val = (cursor.fetchall())
                 
-                fabric_map = {}
                 for fabric_data in fetch_val:
-                    fabric_id = fabric_data[0]
+                    fabric = {}
+                    fabric['fabric_id'] = fabric_data[0]
+                    fabric['fabric_name'] = fabric_data[1]
+                    fabric['material'] = fabric_data[2]
+                    fabric['designer'] = fabric_data[3]
+                    fabric['fabric_line'] = fabric_data[4]
+                    fabric['width'] = fabric_data[5]
+                    fabric['yardage'] = fabric_data[6]
+                    fabric['cut'] = fabric_data[7]
+                    fabric['style'] = fabric_data[8]
+                    fabric['rack_id'] = fabric_data[9]
+                    fabric['stack_id'] = fabric_data[10]
+                    fabric['image_type'] = fabric_data[11]
+                    fabric['collection'] = fabric_data[12]
+                    fabric['real_name'] = fabric_data[13]
+                    fabric['image_path'] = secure_filename(fabric['fabric_name'] + fabric['image_type'])
+                    fabric['checked_out'] = bool(fabric_data[14])
+                    fabric['quantity'] = fabric_data[15] if fabric_data[15] else 1
 
-                    if fabric_id not in fabric_map:
-                        fabric = {}
-                        fabric['fabric_id'] = fabric_data[0]
-                        fabric['fabric_name'] = fabric_data[1]
-                        fabric['material'] = fabric_data[2]
-                        fabric['designer'] = fabric_data[3]
-                        fabric['fabric_line'] = fabric_data[4]
-                        fabric['width'] = fabric_data[5]
-                        fabric['yardage'] = fabric_data[6]
-                        fabric['cut'] = fabric_data[7]
-                        fabric['style'] = fabric_data[8]
-                        fabric['rack_id'] = fabric_data[9]
-                        fabric['stack_id'] = fabric_data[10]
-                        fabric['image_type'] = fabric_data[11]
-                        fabric['collection'] = fabric_data[12]
-                        fabric['real_name'] = fabric_data[13]
-                        fabric['image_path'] = secure_filename(fabric['fabric_name'] + fabric['image_type'])
-                        fabric['checked_out'] = bool(fabric_data[14])
-                        fabric['quantity'] = fabric_data[15] if fabric_data[15] else 1
+                    fabric['color'] = fabric_data[16].split(',') if fabric_data[16] else []
+                    fabric['tag'] = fabric_data[17].split(',') if fabric_data[17] else []
 
-                        fabric['color'] = set()
-                        fabric['tag'] = set()
-
-                        fabric_map[fabric_id] = fabric
-                    
-                    if fabric_data[16]:
-                        fabric_map[fabric_id]['color'].add(fabric_data[16])
-                    
-                    if fabric_data[17]:
-                        fabric_map[fabric_id]['tag'].add(fabric_data[17])
-
-                for fabric in fabric_map.values():
-                    fabric['color'] = list(fabric['color'])
-                    fabric['tag'] = list(fabric['tag'])
                     all_fabrics.append(fabric)
 
             return all_fabrics
+
+    def get_paged_data(self, queries):
+        acceptedOrderBy = ['fabric_name', 'fabric_id', 'material', 'style', 'collection', 'designer', 'location', 'width', 'yardage']
+        PAGE_SIZE = 16
+        page_number = int(queries['pageNum']) if 'pageNum' in queries else 0
+        offset = (page_number) * PAGE_SIZE
+
+        asc_desc = 'asc'
+        if 'ascDesc' in queries and queries['ascDesc'] == 'desc':
+            asc_desc = 'desc'
+
+        orderBy = f'fabric_name {asc_desc}, fabric_id {asc_desc}'
+        if ('orderBy' in queries and queries['orderBy'] in acceptedOrderBy):
+            print(queries['orderBy'])
+            orderBy = f"{queries['orderBy']} {asc_desc}"
+
+            if queries['orderBy'] != 'fabric_id':
+                orderBy += f', fabric_id {asc_desc}'
+
+        def build_normal_query(table, column, filter):
+            query = []
+            bind_params = []
+
+            for value in filter:
+                if value == '':
+                    continue
+                query.append(f"{table}.{column} = ?")
+                bind_params.append(value)
+
+            if bind_params:
+                return ['(' + ' OR '.join(query) + ')', bind_params]
+            return None
+
+        def build_within_query(table, column, filter):
+            query = []
+            bind_params = []
+
+            if 'min' in filter and filter['min'] != '':
+                query.append(f"{table}.{column} >= ?")
+                bind_params.append(filter['min'])
+
+            if 'max' in filter and filter['max'] != '':
+                query.append(f"{table}.{column} <= ?")
+                bind_params.append(filter['max'])
+
+            if bind_params:
+                return ['(' + ' AND '.join(query) + ')', bind_params]
+            return None
+
+        def search_bar(filter):
+            if not filter or filter.strip() == '':
+                return None
+
+            terms = filter.strip().upper().split()
+
+            query_parts = []
+            bind_params = []
+
+            for term in terms:
+                query_parts.append("""
+                (
+                    UPPER(f.fabric_name) LIKE ? OR
+                    UPPER(cn.collection_name) LIKE ? OR
+                    UPPER(f_l.fabric_line) LIKE ? OR
+                    UPPER(d.designer) LIKE ? OR
+                    CAST(f.fabric_id AS VARCHAR) LIKE ? OR
+                    EXISTS (
+                        SELECT 1
+                        FROM dbo.tag_junction tj
+                        JOIN dbo.tag t ON t.tag_id = tj.tag_id
+                        WHERE tj.fabric_id = f.fabric_id
+                        AND UPPER(t.tag) LIKE ?
+                    ) OR
+                    EXISTS (
+                        SELECT 1
+                        FROM dbo.color_junction cj
+                        JOIN dbo.color col ON col.color_id = cj.color_id
+                        WHERE cj.fabric_id = f.fabric_id
+                        AND UPPER(col.color) LIKE ?
+                    )
+                )
+                """)
+
+                like_term = f"%{term}%"
+                bind_params.extend([like_term] * 7)
+
+            return ['(' + ' AND '.join(query_parts) + ')', bind_params]
+
+        QUERY_BUILDERS = {
+            'style': lambda f: build_normal_query('s', 'style', f),
+            'cut': lambda f: build_normal_query('c', 'cut', f),
+            'material': lambda f: build_normal_query('m', 'material', f),
+            'width': lambda f: build_within_query('f', 'width', f),
+            'yardage': lambda f: build_within_query('f', 'yardage', f),
+            'searchBar': lambda f: search_bar(f)
+        }
+
+        all_query_data = []
+
+        for key, builder in QUERY_BUILDERS.items():
+            if key in queries and queries[key]:
+                q = builder(queries[key])
+                if q:
+                    all_query_data.append(q)
+
+        query_array = []
+        bind_params = []
+
+        for q in all_query_data:
+            query_array.append(q[0])
+            bind_params.extend(q[1])
+
+        where_query = ''
+        if query_array:
+            where_query = f"WHERE {' AND '.join(query_array)}"
+
+        all_fabrics = []
+
+        with connect_to_db.connect_to_db() as cnxn:
+            with cnxn.cursor() as cursor:
+                count_query = f'''
+                    SELECT COUNT(*)
+                    FROM dbo.fabric f
+                    LEFT JOIN dbo.material m ON m.material_id = f.material_id
+                    LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
+                    LEFT JOIN dbo.collection_name cn ON cn.collection_id = f.collection_id
+                    LEFT JOIN dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
+                    LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
+                    LEFT JOIN dbo.style s ON s.style_id = f.style_id
+                    {where_query}
+                '''
+
+                cursor.execute(count_query, bind_params)
+                total_count = cursor.fetchone()[0]
+                page_count = (total_count + PAGE_SIZE) // PAGE_SIZE
+
+                data_query = f'''
+                    SELECT 
+                        f.fabric_id, fabric_name, material, designer, fabric_line, width, yardage, cut, style, 
+                        rack_id, stack_id, image_type, collection_name, real_name, cf.checked_out, quantity,
+                        (
+                            SELECT STRING_AGG(CONVERT(VARCHAR(MAX), col.color), ',')
+                            FROM dbo.color_junction cj
+                            JOIN dbo.color col ON col.color_id = cj.color_id
+                            WHERE cj.fabric_id = f.fabric_id
+                        ) AS colors,
+                        (
+                            SELECT STRING_AGG(CONVERT(VARCHAR(MAX), t.tag), ',')
+                            FROM dbo.tag_junction tj
+                            JOIN dbo.tag t ON t.tag_id = tj.tag_id
+                            WHERE tj.fabric_id = f.fabric_id
+                        ) AS tags
+                    FROM dbo.fabric f
+                    LEFT JOIN dbo.material m ON m.material_id = f.material_id
+                    LEFT JOIN dbo.designer d ON d.designer_id = f.designer_id
+                    LEFT JOIN dbo.collection_name cn ON cn.collection_id = f.collection_id
+                    LEFT JOIN dbo.fabric_line f_l ON f_l.fabric_line_id = f.fabric_line_id
+                    LEFT JOIN dbo.cut c ON c.cut_id = f.cut_id
+                    LEFT JOIN dbo.style s ON s.style_id = f.style_id
+                    LEFT JOIN (
+                        SELECT fabric_id, MAX(CAST(checked_out AS INT)) AS checked_out
+                        FROM dbo.checkout_fabric
+                        GROUP BY fabric_id
+                    ) cf ON cf.fabric_id = f.fabric_id
+                    {where_query}
+                    ORDER BY {orderBy}
+                    OFFSET ? ROWS
+                    FETCH NEXT ? ROWS ONLY
+                '''
+
+                cursor.execute(data_query, bind_params + [offset, PAGE_SIZE])
+                fetch_val = cursor.fetchall()
+
+                for fabric_data in fetch_val:
+                    fabric = {
+                        'fabric_id': fabric_data[0],
+                        'fabric_name': fabric_data[1],
+                        'material': fabric_data[2],
+                        'designer': fabric_data[3],
+                        'fabric_line': fabric_data[4],
+                        'width': fabric_data[5],
+                        'yardage': fabric_data[6],
+                        'cut': fabric_data[7],
+                        'style': fabric_data[8],
+                        'rack_id': fabric_data[9],
+                        'stack_id': fabric_data[10],
+                        'image_type': fabric_data[11],
+                        'collection': fabric_data[12],
+                        'real_name': fabric_data[13],
+                        'image_path': secure_filename(fabric_data[1] + fabric_data[11]),
+                        'checked_out': bool(fabric_data[14]),
+                        'quantity': fabric_data[15] if fabric_data[15] else 1,
+                        'color': fabric_data[16].split(',') if fabric_data[16] else [],
+                        'tag': fabric_data[17].split(',') if fabric_data[17] else []
+                    }
+
+                    all_fabrics.append(fabric)
+
+        return {
+            "data": all_fabrics,
+            "total_count": total_count,
+            "page_count": page_count,
+            "page_number": page_number
+        }
 
     def calculate_current_stats(self):
         fabrics = self.get_all_data()
